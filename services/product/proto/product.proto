@@ -1,16 +1,28 @@
 syntax = "proto3";
 package product;
-option go_package = "cec-project/delivery-app/services/product/proto";
-
-import "common/types.proto";
+option go_package = "cec/services/product/proto/gen";
 
 service ProductService {
   rpc CreateProduct(ProductRequest) returns (ProductResponse);
   rpc GetProduct(ProductID) returns (ProductResponse);
   rpc ListProducts(ProductQuery) returns (ProductListResponse);
   rpc UpdateProduct(ProductUpdate) returns (ProductResponse);
-  rpc DeleteProduct(ProductID) returns (common.BaseResponse);
+  rpc DeleteProduct(ProductID) returns (BaseResponse);
 }
+
+// common
+message BaseResponse {
+  int32 code = 1;
+  string message = 2;
+}
+
+message Timestamp {
+  int64 seconds = 1;
+  int32 nanos = 2;
+}
+
+message Empty {}
+// common 
 
 message ProductRequest {
   string name = 1;
@@ -39,12 +51,12 @@ message ProductResponse {
   string name = 2;
   string description = 3;
   double price = 4;
-  common.Timestamp created_at = 5;
-  common.BaseResponse base = 6;
+  Timestamp created_at = 5;
+  BaseResponse base = 6;
 }
 
 message ProductListResponse {
   repeated ProductResponse products = 1;
   int32 total = 2;
-  common.BaseResponse base = 3;
+  BaseResponse base = 3;
 }

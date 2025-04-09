@@ -1,3 +1,3 @@
-module cec-project/delivery-app
+module cec
 
 go 1.24.1

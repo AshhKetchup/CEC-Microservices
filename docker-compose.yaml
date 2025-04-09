@@ -5,32 +5,89 @@ services:
     build: ./services/api-gateway
     ports:
       - "8080:8080"
+    environment:
+      - AUTH_SERVICE_ADDR=auth:50051
+      - PRODUCT_SERVICE_ADDR=product:50052
+      - ORDER_SERVICE_ADDR=order:50053
+      - DELIVERY_SERVICE_ADDR=delivery:50054
     depends_on:
       - auth
       - product
       - order
-      - delivery
+    networks:
+      - app-network
 
   auth:
-    image: auth-service
     build: ./services/auth
     ports:
       - "50051:50051"
+    environment:
+      - DB_HOST=mysql-db
+      - DB_PORT=3306
+      - DB_USER=app_user
+      - DB_PASSWORD=app_password
+      - DB_NAME=auth_db
+      - JWT_SECRET=your_secure_secret
+    depends_on:
+      mysql-db:
+        condition: service_healthy
+    networks:
+      - app-network
 
   product:
-    image: product-service
     build: ./services/product
     ports:
       - "50052:50052"
+    environment:
+      - DB_HOST=mysql-db
+      - DB_PORT=3306
+      - DB_USER=app_user
+      - DB_PASSWORD=app_password
+      - DB_NAME=product_db
+    depends_on:
+      mysql-db:
+        condition: service_healthy
+    networks:
+      - app-network
 
   order:
-    image: order-service
     build: ./services/order
     ports:
       - "50053:50053"
+    environment:
+      - DB_HOST=mysql-db
+      - DB_PORT=3306
+      - DB_USER=app_user
+      - DB_PASSWORD=app_password
+      - DB_NAME=order_db
+    depends_on:
+      - product
+      - mysql-db
+    networks:
+      - app-network
 
-  delivery:
-    image: delivery-service
-    build: ./services/delivery
+  mysql-db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: app_db
+      MYSQL_USER: app_user
+      MYSQL_PASSWORD: app_password
     ports:
-      - "50054:50054"
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
+
+volumes:
+  mysql-data:
+
+networks:
+  app-network:
+    driver: bridge

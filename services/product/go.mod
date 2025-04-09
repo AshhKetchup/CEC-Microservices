@@ -1,4 +1,4 @@
-module cec-project/delivery-app/services/product
+module cec/services/product
 
 go 1.24.1
 
