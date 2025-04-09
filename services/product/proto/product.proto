@@ -1,0 +1,50 @@
+syntax = "proto3";
+package product;
+option go_package = "github.com/yourproject/services/product/gen";
+
+import "common/types.proto";
+
+service ProductService {
+  rpc CreateProduct(ProductRequest) returns (ProductResponse);
+  rpc GetProduct(ProductID) returns (ProductResponse);
+  rpc ListProducts(ProductQuery) returns (ProductListResponse);
+  rpc UpdateProduct(ProductUpdate) returns (ProductResponse);
+  rpc DeleteProduct(ProductID) returns (common.BaseResponse);
+}
+
+message ProductRequest {
+  string name = 1;
+  string description = 2;
+  double price = 3;
+}
+
+message ProductID {
+  string id = 1;
+}
+
+message ProductQuery {
+  int32 page = 1;
+  int32 limit = 2;
+}
+
+message ProductUpdate {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  double price = 4;
+}
+
+message ProductResponse {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  double price = 4;
+  common.Timestamp created_at = 5;
+  common.BaseResponse base = 6;
+}
+
+message ProductListResponse {
+  repeated ProductResponse products = 1;
+  int32 total = 2;
+  common.BaseResponse base = 3;
+}

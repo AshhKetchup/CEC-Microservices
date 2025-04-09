@@ -1,0 +1,43 @@
+syntax = "proto3";
+package order;
+option go_package = "github.com/yourproject/services/order/gen";
+
+import "common/types.proto";
+import "product.proto";
+
+service OrderService {
+  rpc CreateOrder(OrderRequest) returns (OrderResponse);
+  rpc GetOrder(OrderID) returns (OrderResponse);
+  rpc UpdateOrderStatus(OrderStatusUpdate) returns (OrderResponse);
+}
+
+message OrderRequest {
+  string user_id = 1;
+  repeated string product_ids = 2;
+}
+
+message OrderID {
+  string id = 1;
+}
+
+message OrderStatusUpdate {
+  string order_id = 1;
+  OrderStatus status = 2;
+}
+
+enum OrderStatus {
+  PENDING = 0;
+  PROCESSING = 1;
+  COMPLETED = 2;
+  CANCELLED = 3;
+}
+
+message OrderResponse {
+  string id = 1;
+  string user_id = 2;
+  repeated product.ProductResponse items = 3;
+  double total = 4;
+  OrderStatus status = 5;
+  common.Timestamp created_at = 6;
+  common.BaseResponse base = 7;
+}

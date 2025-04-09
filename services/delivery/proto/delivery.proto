@@ -1,0 +1,43 @@
+syntax = "proto3";
+package delivery;
+option go_package = "github.com/yourproject/services/delivery/gen";
+
+import "common/types.proto";
+import "order.proto";
+
+service DeliveryService {
+  rpc CreateDelivery(DeliveryRequest) returns (DeliveryResponse);
+  rpc GetDelivery(DeliveryID) returns (DeliveryResponse);
+  rpc UpdateDeliveryStatus(DeliveryStatusUpdate) returns (DeliveryResponse);
+}
+
+message DeliveryRequest {
+  string order_id = 1;
+  string address = 2;
+}
+
+message DeliveryID {
+  string id = 1;
+}
+
+message DeliveryStatusUpdate {
+  string delivery_id = 1;
+  DeliveryStatus status = 2;
+}
+
+enum DeliveryStatus {
+  PENDING = 0;
+  IN_TRANSIT = 1;
+  DELIVERED = 2;
+  DELAYED = 3;
+}
+
+message DeliveryResponse {
+  string id = 1;
+  order.OrderResponse order = 2;
+  string address = 3;
+  DeliveryStatus status = 4;
+  common.Timestamp estimated_delivery = 5;
+  common.Timestamp created_at = 6;
+  common.BaseResponse base = 7;
+}
