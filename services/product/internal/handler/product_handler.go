@@ -3,12 +3,12 @@ package handler
 import (
 	"context"
 
-	"github.com/yourproject/services/product/internal/model"
-	"github.com/yourproject/services/product/internal/repository"
+	"cec-project/delivery-app/services/product/internal/model"
+	"cec-project/delivery-app/services/product/internal/repository"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	pb "cec-project/delivery-app/services/product/gen"
+	pb "cec-project/delivery-app/services/product/proto/gen"
 )
 
 type ProductHandler struct {

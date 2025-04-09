@@ -7,10 +7,10 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/yourproject/services/product/config"
-	"github.com/yourproject/services/product/internal/handler"
-	"github.com/yourproject/services/product/internal/repository"
-	"github.com/yourproject/services/product/internal/storage"
+	"cec-project/delivery-app/services/product/config"
+	"cec-project/delivery-app/services/product/internal/handler"
+	"cec-project/delivery-app/services/product/internal/repository"
+	"cec-project/delivery-app/services/product/internal/storage"
 	"google.golang.org/grpc"
 )
 

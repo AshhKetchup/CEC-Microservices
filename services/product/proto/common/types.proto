@@ -1,6 +1,6 @@
 syntax = "proto3";
 package common;
-option go_package = "github.com/yourproject/services/common/gen";
+option go_package = "cec-project/delivery-app/services/product/proto/common/gen";
 
 message BaseResponse {
   int32 code = 1;
