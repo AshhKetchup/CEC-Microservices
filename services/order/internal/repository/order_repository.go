@@ -3,8 +3,8 @@ package repository
 import (
 	"context"
 
-	"github.com/yourproject/services/order/internal/client"
-	"github.com/yourproject/services/order/internal/model"
+	"cec-project/delivery-app/services/order/internal/model"
+	"cec-project/delivery-appservices/order/internal/client"
 )
 
 type OrderRepository interface {

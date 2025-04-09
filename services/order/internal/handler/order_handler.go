@@ -3,12 +3,12 @@ package handler
 import (
 	"context"
 
-	"github.com/yourproject/services/order/internal/model"
-	"github.com/yourproject/services/order/internal/repository"
+	"cec-project/delivery-app/services/order/internal/model"
+	"cec-project/delivery-app/services/order/internal/repository"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	pb "github.com/yourproject/services/order/gen"
+	pb "cec-project/delivery-app/services/order/gen"
 )
 
 type OrderHandler struct {

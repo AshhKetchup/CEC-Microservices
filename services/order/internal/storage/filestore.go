@@ -5,7 +5,7 @@ import (
 	"os"
 	"sync"
 
-	"github.com/yourproject/services/order/internal/model"
+	"cec-project/delivery-app/services/order/internal/model"
 )
 
 type FileStore struct {

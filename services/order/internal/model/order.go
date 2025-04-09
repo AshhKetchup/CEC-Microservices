@@ -3,7 +3,7 @@ package model
 import (
 	"time"
 
-	common "github.com/yourproject/services/common/gen"
+	common "cec-project/delivery-app/services/common/gen"
 )
 
 type OrderStatus int

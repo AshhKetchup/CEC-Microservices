@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/yourproject/services/product/internal/model"
+	"cec-project/delivery-app/services/product/internal/model"
 )
 
 type FileStore struct {

@@ -8,7 +8,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	pb "github.com/yourproject/services/product/gen"
+	pb "cec-project/delivery-app/services/product/gen"
 )
 
 type ProductHandler struct {

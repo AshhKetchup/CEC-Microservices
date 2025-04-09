@@ -3,7 +3,7 @@ package client
 import (
 	"context"
 
-	productpb "github.com/yourproject/services/product/gen"
+	productpb "cec-project/delivery-app/services/product/gen"
 	"google.golang.org/grpc"
 )
 
