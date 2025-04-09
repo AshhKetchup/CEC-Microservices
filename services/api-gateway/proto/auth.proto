@@ -1,0 +1,38 @@
+syntax = "proto3";
+package auth;
+option go_package = "github.com/yourproject/services/auth/gen";
+
+import "common/types.proto";
+
+service AuthService {
+  rpc Register(RegisterRequest) returns (AuthResponse);
+  rpc Login(LoginRequest) returns (AuthResponse);
+  rpc ValidateToken(TokenRequest) returns (TokenValidationResponse);
+}
+
+message RegisterRequest {
+  string email = 1;
+  string password = 2;
+}
+
+message LoginRequest {
+  string email = 1;
+  string password = 2;
+}
+
+message TokenRequest {
+  string token = 1;
+}
+
+message AuthResponse {
+  string user_id = 1;
+  string token = 2;
+  common.Timestamp expires_at = 3;
+  common.BaseResponse base = 4;
+}
+
+message TokenValidationResponse {
+  bool valid = 1;
+  string user_id = 2;
+  common.BaseResponse base = 3;
+}

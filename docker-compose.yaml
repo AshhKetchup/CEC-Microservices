@@ -1,0 +1,36 @@
+version: '3'
+
+services:
+  gateway:
+    build: ./services/api-gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      - auth
+      - product
+      - order
+      - delivery
+
+  auth:
+    image: auth-service
+    build: ./services/auth
+    ports:
+      - "50051:50051"
+
+  product:
+    image: product-service
+    build: ./services/product
+    ports:
+      - "50052:50052"
+
+  order:
+    image: order-service
+    build: ./services/order
+    ports:
+      - "50053:50053"
+
+  delivery:
+    image: delivery-service
+    build: ./services/delivery
+    ports:
+      - "50054:50054"

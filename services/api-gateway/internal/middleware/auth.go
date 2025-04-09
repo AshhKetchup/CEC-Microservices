@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	authpb "cec-project/delivery-app/api/gen/auth"
+	authpb "cec-project/delivery-app/auth/proto/gen"
 )
 
 func Auth(authClient authpb.AuthServiceClient) func(http.Handler) http.Handler {
