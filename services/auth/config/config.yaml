@@ -1,5 +1,0 @@
-port: "50051"
-data_dir: "./data"  # Add data directory config
-jwt:
-  secret: "supersecretkey"
-  expiration: "24h"
