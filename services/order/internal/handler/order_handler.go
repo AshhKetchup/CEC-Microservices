@@ -2,9 +2,10 @@ package handler
 
 import (
 	"context"
+	"database/sql"
 
 	"cec-project/delivery-app/services/order/internal/model"
-	"cec-project/delivery-app/services/order/internal/repository"
+
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -12,11 +13,11 @@ import (
 )
 
 type OrderHandler struct {
-	repo repository.OrderRepository
+	db *sql.DB
 	pb.UnimplementedOrderServiceServer
 }
 
-func NewOrderHandler(repo repository.OrderRepository) *OrderHandler {
+func NewOrderHandler(db *sql.DB) *ProductHandler {
 	return &OrderHandler{repo: repo}
 }
 

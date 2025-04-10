@@ -2,7 +2,6 @@ syntax = "proto3";
 package order;
 option go_package = "github.com/yourproject/services/order/gen";
 
-import "common/types.proto";
 import "product.proto";
 
 service OrderService {
@@ -38,6 +37,20 @@ message OrderResponse {
   repeated product.ProductResponse items = 3;
   double total = 4;
   OrderStatus status = 5;
-  common.Timestamp created_at = 6;
-  common.BaseResponse base = 7;
+  Timestamp created_at = 6;
+  BaseResponse base = 7;
 }
+
+// common
+message BaseResponse {
+  int32 code = 1;
+  string message = 2;
+}
+
+message Timestamp {
+  int64 seconds = 1;
+  int32 nanos = 2;
+}
+
+message Empty {}
+// common
