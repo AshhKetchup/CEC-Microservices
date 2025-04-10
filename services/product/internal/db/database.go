@@ -7,6 +7,7 @@ import (
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/joho/godotenv"
 )
 
 var (
@@ -15,6 +16,11 @@ var (
 
 // InitDB initializes and returns a database connection
 func InitDB() (*sql.DB, error) {
+	err := godotenv.Load("product.env")
+	if err != nil {
+		return nil, fmt.Errorf("no env found")
+	}
+
 	if dbInstance == nil {
 		// Get configuration from environment variables
 		dbHost := os.Getenv("DB_HOST")

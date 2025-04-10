@@ -8,6 +8,7 @@ import (
 
 	pb "cec/services/product/proto/gen"
 
+	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -22,34 +23,34 @@ func NewProductHandler(db *sql.DB) *ProductHandler {
 }
 
 func (h *ProductHandler) CreateProduct(ctx context.Context, req *pb.ProductRequest) (*pb.ProductResponse, error) {
-	var product pb.ProductResponse
-	var createdAt time.Time
+	//var createdAt time.Time
+	id := uuid.New().String()
 
-	// Insert product into database
-	err := h.db.QueryRowContext(ctx,
-		`INSERT INTO products (name, description, price) 
-         VALUES (?, ?, ?) 
-         RETURNING id, name, description, price, created_at`,
-		req.Name, req.Description, req.Price,
-	).Scan(&product.Id, &product.Name, &product.Description, &product.Price, &createdAt)
-
+	// Manually provide the ID since MySQL doesn't auto-generate UUIDs
+	_, err := h.db.ExecContext(ctx,
+		`INSERT INTO products (id, name, description, price, created_at) 
+         VALUES (?, ?, ?, ?, ?)`,
+		id, req.Name, req.Description, req.Price, time.Now(),
+	)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal,
-			"failed to create product: %v", err)
+		return nil, status.Errorf(codes.Internal, "failed to create product: %v", err)
 	}
 
-	// Convert time.Time to Timestamp
-	product.CreatedAt = &pb.Timestamp{
-		Seconds: createdAt.Unix(),
-		Nanos:   int32(createdAt.Nanosecond()),
-	}
-
-	product.Base = &pb.BaseResponse{
-		Code:    int32(codes.OK),
-		Message: "Product created successfully",
-	}
-
-	return &product, nil
+	// Return constructed ProductResponse
+	return &pb.ProductResponse{
+		Id:          id,
+		Name:        req.Name,
+		Description: req.Description,
+		Price:       req.Price,
+		CreatedAt: &pb.Timestamp{
+			Seconds: time.Now().Unix(),
+			Nanos:   int32(time.Now().Nanosecond()),
+		},
+		Base: &pb.BaseResponse{
+			Code:    int32(codes.OK),
+			Message: "Product created successfully",
+		},
+	}, nil
 }
 
 func (h *ProductHandler) GetProduct(ctx context.Context, req *pb.ProductID) (*pb.ProductResponse, error) {

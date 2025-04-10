@@ -1,6 +1,0 @@
-database:
-  host: "mysql-service"
-  port: "3306"
-  user: "product_user"
-  password: "product_pass"
-  name: "product_db"
