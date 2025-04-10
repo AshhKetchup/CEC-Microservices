@@ -55,6 +55,7 @@ func InitDB() (*sql.DB, error) {
 			return nil, fmt.Errorf("schema initialization failed: %w", err)
 		}
 	}
+	print("Database connected!\n")
 	return dbInstance, nil
 }
 

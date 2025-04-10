@@ -75,7 +75,7 @@ func (s *AuthHandler) Login(ctx context.Context, req *pb.LoginRequest) (*pb.Logi
 	var userID string
 	var hashedPassword string
 	err := s.db.QueryRowContext(ctx,
-		"SELECT id, password FROM users WHERE email = $1",
+		"SELECT id, password FROM users WHERE email = ?",
 		req.Email,
 	).Scan(&userID, &hashedPassword)
 
@@ -111,7 +111,7 @@ func (s *AuthHandler) Register(ctx context.Context, req *pb.RegisterRequest) (*p
 	// Check if user already exists
 	var exists bool
 	err := s.db.QueryRowContext(ctx,
-		"SELECT EXISTS(SELECT 1 FROM users WHERE email = $1)",
+		"SELECT EXISTS(SELECT 1 FROM users WHERE email = ?)",
 		req.Email,
 	).Scan(&exists)
 
@@ -131,7 +131,7 @@ func (s *AuthHandler) Register(ctx context.Context, req *pb.RegisterRequest) (*p
 	// Create user in database
 	var userID string
 	err = s.db.QueryRowContext(ctx,
-		"INSERT INTO users (email, password, created_at) VALUES ($1, $2, $3) RETURNING id",
+		"INSERT INTO users (email, password, created_at) VALUES (?, ?, ?) RETURNING id",
 		req.Email,
 		string(hashedPassword),
 		time.Now(),
@@ -146,10 +146,35 @@ func (s *AuthHandler) Register(ctx context.Context, req *pb.RegisterRequest) (*p
 	}, nil
 }
 
+// Custom claims containing standard claims and user ID
+type CustomClaims struct {
+	UserID string `json:"user_id"`
+	jwt.RegisteredClaims
+}
+
 // Helper functions
 func GenerateJWT(userID string) (string, error) {
-	// Implement your actual JWT generation logic here
-	return "generated.jwt.token", nil
+	claims := CustomClaims{
+		UserID: userID,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(jwtExpiration)),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+			NotBefore: jwt.NewNumericDate(time.Now()),
+			Issuer:    jwtIssuer,
+			Subject:   "user-auth-token",
+		},
+	}
+
+	// Create the token with HS256 signing method
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	// Sign the token with the secret key
+	signedToken, err := token.SignedString([]byte(jwtSecretKey))
+	if err != nil {
+		return "", fmt.Errorf("failed to sign token: %w", err)
+	}
+
+	return signedToken, nil
 }
 
 // // Add these database initialization steps in your application setup
@@ -165,8 +190,10 @@ func GenerateJWT(userID string) (string, error) {
 // 	return err
 // }
 
+// ValidateJWT validates a JWT token and returns the user ID if valid
 func ValidateJWT(tokenString string) (bool, string, error) {
-	token, err := jwt.ParseWithClaims(tokenString, &customClaims{}, func(token *jwt.Token) (interface{}, error) {
+	// Parse the token with custom claims
+	token, err := jwt.ParseWithClaims(tokenString, &CustomClaims{}, func(token *jwt.Token) (interface{}, error) {
 		// Validate the signing method
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
@@ -175,14 +202,15 @@ func ValidateJWT(tokenString string) (bool, string, error) {
 	})
 
 	if err != nil {
-		return false, "", err
+		return false, "", fmt.Errorf("token validation failed: %w", err)
 	}
 
-	if claims, ok := token.Claims.(*customClaims); ok && token.Valid {
+	// Verify the claims
+	if claims, ok := token.Claims.(*CustomClaims); ok && token.Valid {
 		return true, claims.UserID, nil
 	}
 
-	return false, "", errors.New("invalid token")
+	return false, "", fmt.Errorf("invalid token claims")
 }
 
 func (s *AuthHandler) ValidateToken(ctx context.Context, req *pb.ValidateTokenRequest) (*pb.ValidateTokenResponse, error) {
