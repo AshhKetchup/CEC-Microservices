@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/joho/godotenv"
 	"golang.org/x/crypto/bcrypt"
 
 	"google.golang.org/grpc/codes"
@@ -33,10 +32,6 @@ type customClaims struct {
 }
 
 func init() {
-	// Load environment variables from .env file
-	if err := godotenv.Load("auth.env"); err != nil {
-		panic(fmt.Sprintf("Error loading .env file: %v", err))
-	}
 
 	// Load JWT configuration
 	jwtSecretKey = os.Getenv("JWT_SECRET_KEY")

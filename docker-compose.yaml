@@ -1,82 +1,95 @@
 version: '3'
 
 services:
-  gateway:
-    build: ./services/api-gateway
-    ports:
-      - "8080:8080"
+  etcd:
+    image: bitnami/etcd:3.5
+    container_name: etcd
     environment:
-      - AUTH_SERVICE_ADDR=auth:50051
-      - PRODUCT_SERVICE_ADDR=product:50052
-      - ORDER_SERVICE_ADDR=order:50053
-      - DELIVERY_SERVICE_ADDR=delivery:50054
-    depends_on:
-      - auth
-      - product
-      - order
+      ETCD_ENABLE_V2: "true"
+      ALLOW_NONE_AUTHENTICATION: "yes"
+      ETCD_ADVERTISE_CLIENT_URLS: "http://0.0.0.0:2379"
+      ETCD_LISTEN_CLIENT_URLS: "http://0.0.0.0:2379"
     networks:
       - app-network
 
-  auth:
-    build: ./services/auth
+  apisix:
+    build: ./services/api-gateway/
+    container_name: apisix
     ports:
-      - "50051:50051"
-    environment:
-      - DB_HOST=mysql-db
-      - DB_PORT=3306
-      - DB_USER=app_user
-      - DB_PASSWORD=app_password
-      - DB_NAME=auth_db
-      - JWT_SECRET=your_secure_secret
+      - "9080:9080"     # HTTP
+      - "9090:9090"     # gRPC
+      - "9180:9180"     # Admin API
+    volumes:
+      - ./services/api-gateway/apisix:/usr/local/apisix/conf
+      - ./services/api-gateway/protos:/protos
     depends_on:
-      mysql-db:
-        condition: service_healthy
+      - etcd
     networks:
       - app-network
+
+
+  # auth:
+  #   build: ./services/auth
+  #   container_name: auth
+  #   ports:
+  #     - "50051:50051"
+  #   environment:
+  #     - DB_HOST=mysql
+  #     - DB_PORT=3306
+  #     - DB_USER=auth_user
+  #     - DB_PASSWORD=authpass
+  #     - DB_NAME=auth_db
+  #     - JWT_SECRET=secretkey
+  #     - JWT_EXPIRATION_HOURS=24
+  #     - JWT_ISSUER=cec-auth-service
+  #   depends_on:
+  #     mysql:
+  #       condition: service_healthy
+  #   networks:
+  #     - app-network
 
   product:
     build: ./services/product
+    container_name: product-service
     ports:
       - "50052:50052"
     environment:
-      - DB_HOST=mysql-db
+      - DB_HOST=mysql
       - DB_PORT=3306
-      - DB_USER=app_user
-      - DB_PASSWORD=app_password
+      - DB_USER=product_user
+      - DB_PASSWORD=productpass
       - DB_NAME=product_db
     depends_on:
-      mysql-db:
+      mysql:
         condition: service_healthy
     networks:
       - app-network
 
-  order:
-    build: ./services/order
-    ports:
-      - "50053:50053"
-    environment:
-      - DB_HOST=mysql-db
-      - DB_PORT=3306
-      - DB_USER=app_user
-      - DB_PASSWORD=app_password
-      - DB_NAME=order_db
-    depends_on:
-      - product
-      - mysql-db
-    networks:
-      - app-network
+#   order:
+#     build: ./services/order
+#     ports:
+#       - "50053:50053"
+#     environment:
+#       - DB_HOST=mysql-db
+#       - DB_PORT=3306
+#       - DB_USER=app_user
+#       - DB_PASSWORD=app_password
+#       - DB_NAME=order_db
+#     depends_on:
+#       - product
+#       - mysql-db
+#     networks:
+#       - app-network
 
-  mysql-db:
+  mysql:
     image: mysql:8.0
+    container_name: mysql
     environment:
       MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: app_db
-      MYSQL_USER: app_user
-      MYSQL_PASSWORD: app_password
     ports:
       - "3306:3306"
     volumes:
-      - mysql-data:/var/lib/mysql
+      - ./services/mysql:/docker-entrypoint-initdb.d
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 5s
@@ -85,8 +98,8 @@ services:
     networks:
       - app-network
 
-volumes:
-  mysql-data:
+# volumes:
+#   mysql-data:
 
 networks:
   app-network:
