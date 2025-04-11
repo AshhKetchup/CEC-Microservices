@@ -10,7 +10,6 @@ FROM alpine:latest
 WORKDIR /app
 
 COPY --from=builder /app/product-service .
-COPY config/config.yaml ./config/
 
 EXPOSE 50052
 CMD ["./product-service"]

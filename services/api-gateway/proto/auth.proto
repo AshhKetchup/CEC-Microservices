@@ -1,18 +1,13 @@
 syntax = "proto3";
-package auth;
-option go_package = "cec-project/delivery-app/services/auth/gen";
 
-import "common/types.proto";
+package auth;
+option go_package = "cec/services/auth/proto/gen";
 
 service AuthService {
-  rpc Register(RegisterRequest) returns (AuthResponse);
-  rpc Login(LoginRequest) returns (AuthResponse);
-  rpc ValidateToken(TokenRequest) returns (TokenValidationResponse);
-}
-
-message RegisterRequest {
-  string email = 1;
-  string password = 2;
+  // Existing endpoints
+  rpc Login(LoginRequest) returns (LoginResponse);
+  rpc Register(RegisterRequest) returns (RegisterResponse);
+  rpc ValidateToken(ValidateTokenRequest) returns (ValidateTokenResponse);
 }
 
 message LoginRequest {
@@ -20,19 +15,39 @@ message LoginRequest {
   string password = 2;
 }
 
-message TokenRequest {
+message LoginResponse {
   string token = 1;
 }
 
-message AuthResponse {
-  string user_id = 1;
-  string token = 2;
-  common.Timestamp expires_at = 3;
-  common.BaseResponse base = 4;
+message RegisterRequest {
+  string email = 1;
+  string password = 2;
 }
 
-message TokenValidationResponse {
+message RegisterResponse {
+  string id = 1;
+}
+
+message ValidateTokenRequest {
+  string token = 1;
+}
+
+message ValidateTokenResponse {
   bool valid = 1;
   string user_id = 2;
-  common.BaseResponse base = 3;
+  BaseResponse base = 3;
 }
+
+// common
+message BaseResponse {
+  int32 code = 1;
+  string message = 2;
+}
+
+message Timestamp {
+  int64 seconds = 1;
+  int32 nanos = 2;
+}
+
+message Empty {}
+// common

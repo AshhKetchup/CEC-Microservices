@@ -1,0 +1,62 @@
+syntax = "proto3";
+package product;
+option go_package = "cec/services/product/proto/gen";
+
+service ProductService {
+  rpc CreateProduct(ProductRequest) returns (ProductResponse);
+  rpc GetProduct(ProductID) returns (ProductResponse);
+  rpc ListProducts(ProductQuery) returns (ProductListResponse);
+  rpc UpdateProduct(ProductUpdate) returns (ProductResponse);
+  rpc DeleteProduct(ProductID) returns (BaseResponse);
+}
+
+// common
+message BaseResponse {
+  int32 code = 1;
+  string message = 2;
+}
+
+message Timestamp {
+  int64 seconds = 1;
+  int32 nanos = 2;
+}
+
+message Empty {}
+// common 
+
+message ProductRequest {
+  string name = 1;
+  string description = 2;
+  double price = 3;
+}
+
+message ProductID {
+  string id = 1;
+}
+
+message ProductQuery {
+  int32 page = 1;
+  int32 limit = 2;
+}
+
+message ProductUpdate {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  double price = 4;
+}
+
+message ProductResponse {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  double price = 4;
+  Timestamp created_at = 5;
+  BaseResponse base = 6;
+}
+
+message ProductListResponse {
+  repeated ProductResponse products = 1;
+  int32 total = 2;
+  BaseResponse base = 3;
+}
