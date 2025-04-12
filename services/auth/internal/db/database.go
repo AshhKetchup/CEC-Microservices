@@ -6,8 +6,8 @@ import (
 	"os"
 	"time"
 
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
 )
 
 var (
@@ -25,17 +25,15 @@ func InitDB() (*sql.DB, error) {
 		// Get configuration from environment variables
 		dbHost := os.Getenv("DB_HOST")
 		dbPort := os.Getenv("DB_PORT")
-		dbUser := os.Getenv("DB_USER")
-		dbPass := os.Getenv("DB_PASSWORD")
 		dbName := os.Getenv("DB_NAME")
+		sslMode := os.Getenv("DB_SSLMODE")
 
 		// Create connection string
-		dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true",
-			dbUser, dbPass, dbHost, dbPort, dbName)
+		dsn := fmt.Sprintf("host=%s port=%s dbname=%s sslmode=%s",
+			dbHost, dbPort, dbName, sslMode)
 
 		// Open connection
-		var err error
-		dbInstance, err = sql.Open("mysql", dsn)
+		dbInstance, err = sql.Open("postgres", dsn)
 		if err != nil {
 			return nil, fmt.Errorf("failed to open database: %w", err)
 		}
@@ -59,24 +57,19 @@ func InitDB() (*sql.DB, error) {
 	return dbInstance, nil
 }
 
-// func createTables() error {
-// 	_, err := dbInstance.Exec(`CREATE TABLE users (
-//     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-//     email TEXT UNIQUE NOT NULL,
-//     password TEXT NOT NULL,
-//     created_at TIMESTAMP NOT NULL
-// 	)`)
-// 	return err
-// }
-
 // Add these database initialization steps in your application setup
 func createTables(dbInstance *sql.DB) error {
-	_, err := dbInstance.Exec(`
+	_, err := dbInstance.Exec(`CREATE EXTENSION IF NOT EXISTS "pgcrypto";`)
+	if err != nil {
+		return fmt.Errorf("failed to enable pgcrypto extension: %w", err)
+	}
+	_, err = dbInstance.Exec(`
 		CREATE TABLE IF NOT EXISTS users (
-			id UUID PRIMARY KEY DEFAULT (UUID()),
+			id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 			email TEXT UNIQUE NOT NULL,
 			password TEXT NOT NULL,
-			created_at TIMESTAMP NOT NULL
+			role TEXT NOT NULL,
+			created_at TIMESTAMP NOT NULL DEFAULT now()
 		);
 	`)
 	return err
