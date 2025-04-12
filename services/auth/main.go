@@ -1,9 +1,9 @@
 package main
 
 import (
-	"cec/services/auth/internal/db"
-	"cec/services/auth/internal/handler"
-	pb "cec/services/auth/proto/gen"
+	"auth/internal/db"
+	"auth/internal/handler"
+	pb "auth/proto/gen"
 	"log"
 	"net"
 	"os"

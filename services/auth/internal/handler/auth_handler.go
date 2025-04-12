@@ -1,58 +1,21 @@
 package handler
 
 import (
-	pb "github.com/AshhKetchup/CEC-Microservices/services/auth/proto/gen"
+	pb "auth/proto/gen"
 	"context"
 	"database/sql"
 	"errors"
 	"fmt"
-	"os"
-	"strconv"
 	"strings"
 	"time"
 
-	"https://github.com/AshhKetchup/CEC-Microservices/services/auth/helper"
+	"auth/internal/helper"
 
-	"github.com/golang-jwt/jwt/v5"
-	"github.com/joho/godotenv"
 	"golang.org/x/crypto/bcrypt"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
-
-var (
-	jwtSecretKey  string
-	jwtExpiration time.Duration
-	jwtIssuer     string
-)
-
-type customClaims struct {
-	UserID string `json:"user_id"`
-	jwt.RegisteredClaims
-}
-
-func init() {
-	if err := godotenv.Load("auth.env"); err != nil {
-		panic(fmt.Sprintf("Error loading .env file: %v", err))
-	}
-
-	jwtSecretKey = os.Getenv("JWT_SECRET_KEY")
-	if jwtSecretKey == "" {
-		panic("JWT_SECRET_KEY is required in .env")
-	}
-
-	expHours, err := strconv.Atoi(os.Getenv("JWT_EXPIRATION_HOURS"))
-	if err != nil {
-		panic("Invalid JWT_EXPIRATION_HOURS in .env")
-	}
-	jwtExpiration = time.Duration(expHours) * time.Hour
-
-	jwtIssuer = os.Getenv("JWT_ISSUER")
-	if jwtIssuer == "" {
-		jwtIssuer = "cec-auth-service"
-	}
-}
 
 type AuthHandler struct {
 	db *sql.DB
@@ -70,7 +33,7 @@ func (s *AuthHandler) Login(ctx context.Context, req *pb.LoginRequest) (*pb.Logi
 
 	var userID, hashedPassword, userRole string
 	err := s.db.QueryRowContext(ctx,
-		"SELECT id, password FROM users WHERE email = $1",
+		"SELECT id, password, role FROM users WHERE email = $1",
 		req.Email,
 	).Scan(&userID, &hashedPassword, &userRole)
 
@@ -78,6 +41,7 @@ func (s *AuthHandler) Login(ctx context.Context, req *pb.LoginRequest) (*pb.Logi
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, status.Error(codes.NotFound, "user not found")
 		}
+		fmt.Printf("DB Error: %v\n", err)
 		return nil, status.Error(codes.Internal, "failed to retrieve user")
 	}
 
@@ -134,7 +98,8 @@ func (s *AuthHandler) Register(ctx context.Context, req *pb.RegisterRequest) (*p
 }
 
 func (s *AuthHandler) ValidateToken(ctx context.Context, req *pb.ValidateTokenRequest) (*pb.ValidateTokenResponse, error) {
-	isValid, userId, err := helper.ValidateJWT(req.Token)
+	isValid, userId, userRole, err := helper.ValidateJWT(req.Token)
+	fmt.Printf("UserID: %s | Role: %s | Error: %v\n", userId, userRole, err)
 	if err != nil {
 		return &pb.ValidateTokenResponse{
 			Valid: false,

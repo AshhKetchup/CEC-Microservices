@@ -43,7 +43,8 @@ message ValidateTokenRequest {
 message ValidateTokenResponse {
   bool valid = 1;
   string user_id = 2;
-  BaseResponse base = 3;
+  string role = 3;
+  BaseResponse base = 4;
 }
 
 // common
