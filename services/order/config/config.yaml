@@ -1,3 +1,0 @@
-port: "50053"
-data_dir: "/app/data"
-product_service_addr: "product-service:50052"

@@ -1,11 +1,19 @@
 syntax = "proto3";
 
 package auth;
-option go_package = "cec/services/auth/proto/gen";
+option go_package = "./";
+
+import "google/api/annotations.proto";
+import "google/api/http.proto";
 
 service AuthService {
   // Existing endpoints
-  rpc Login(LoginRequest) returns (LoginResponse);
+  rpc Login(LoginRequest) returns (LoginResponse){
+    option (google.api.http) = {
+      post: "/auth/login"
+      body: "*"
+    };
+  };
   rpc Register(RegisterRequest) returns (RegisterResponse);
   rpc ValidateToken(ValidateTokenRequest) returns (ValidateTokenResponse);
 }

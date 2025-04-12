@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
-	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -33,6 +32,7 @@ func InitDB() (*sql.DB, error) {
 			dbUser, dbPass, dbHost, dbPort, dbName)
 
 		// Open connection
+		print("Connecting to database...")
 		var err error
 		dbInstance, err = sql.Open("mysql", dsn)
 		if err != nil {
@@ -40,19 +40,23 @@ func InitDB() (*sql.DB, error) {
 		}
 
 		// Configure connection pool
-		dbInstance.SetMaxOpenConns(25)
-		dbInstance.SetMaxIdleConns(25)
-		dbInstance.SetConnMaxLifetime(5 * time.Minute)
+		// dbInstance.SetMaxOpenConns(25)
+		// dbInstance.SetMaxIdleConns(25)
+		// dbInstance.SetConnMaxLifetime(5 * time.Minute)
 
 		// Verify connection
+		print("Verifying database connection...")
 		if err = dbInstance.Ping(); err != nil {
 			return nil, fmt.Errorf("database ping failed: %w", err)
 		}
 
+		print("Database connection established successfully.")
 		// Initialize schema
 		if err = createTables(); err != nil {
 			return nil, fmt.Errorf("schema initialization failed: %w", err)
 		}
+
+		print("Database schema initialized successfully.")
 	}
 	return dbInstance, nil
 }

@@ -1,0 +1,20 @@
+version: v1
+plugins:
+  # Auth Service
+  - name: go
+    out: services/auth/proto/gen
+  - name: go-grpc
+    out: services/auth/proto/gen
+
+  # Product Service
+  - name: go
+    out: services/product/proto/gen
+  - name: go-grpc
+    out: services/product/proto/gen
+
+  # API Gateway
+  - name: grpc-gateway
+    out: services/api-gateway/gen
+    opt: 
+      - generate_unbound_methods=true
+      - allow_repeated_fields_in_body=true

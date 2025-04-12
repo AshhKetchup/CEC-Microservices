@@ -1,33 +1,15 @@
 version: '3'
 
 services:
-  etcd:
-    image: bitnami/etcd:3.5
-    container_name: etcd
-    environment:
-      ETCD_ENABLE_V2: "true"
-      ALLOW_NONE_AUTHENTICATION: "yes"
-      ETCD_ADVERTISE_CLIENT_URLS: "http://0.0.0.0:2379"
-      ETCD_LISTEN_CLIENT_URLS: "http://0.0.0.0:2379"
-    networks:
-      - app-network
-
-  apisix:
-    build: ./services/api-gateway/
-    container_name: apisix
-    ports:
-      - "9080:9080"     # HTTP
-      - "9090:9090"     # gRPC
-      - "9180:9180"     # Admin API
-    volumes:
-      - ./services/api-gateway/apisix:/usr/local/apisix/conf
-      - ./services/api-gateway/protos:/protos
-    depends_on:
-      - etcd
-    networks:
-      - app-network
-
-
+  api-gateway:
+      build: ./services/api-gateway
+      container_name: api-gateway
+      ports:
+        - "8080:8080"
+      depends_on:
+        - product
+      networks:
+        - app-network
   # auth:
   #   build: ./services/auth
   #   container_name: auth
@@ -60,8 +42,7 @@ services:
       - DB_PASSWORD=productpass
       - DB_NAME=product_db
     depends_on:
-      mysql:
-        condition: service_healthy
+      - mysql
     networks:
       - app-network
 
@@ -89,12 +70,7 @@ services:
     ports:
       - "3306:3306"
     volumes:
-      - ./services/mysql:/docker-entrypoint-initdb.d
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
+      - ./services/mysql:/docker-entrypoint-initdb.d   
     networks:
       - app-network
 
