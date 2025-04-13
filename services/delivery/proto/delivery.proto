@@ -1,0 +1,87 @@
+syntax = "proto3";
+
+package order_delivery;
+option go_package = "cec/services/order_delivery/proto/gen;order_delivery";
+
+import "google/api/annotations.proto";
+
+service DeliveryService {
+  rpc ScheduleDelivery(DeliveryRequest) returns (DeliveryResponse) {
+    option (google.api.http) = {
+      post: "/deliveries"
+      body: "*"
+    };
+  }
+
+  rpc UpdateDeliveryStatus(StatusUpdate) returns (DeliveryResponse) {
+    option (google.api.http) = {
+      put: "/deliveries/{delivery_id}/status"
+      body: "*"
+    };
+  }
+
+  rpc TrackDelivery(DeliveryQuery) returns (DeliveryResponse) {
+    option (google.api.http) = {
+      get: "/deliveries/{delivery_id}"
+    };
+  }
+
+  rpc ConfirmDelivery(DeliveryConfirmation) returns (BaseResponse) {
+    option (google.api.http) = {
+      post: "/deliveries/{delivery_id}/confirm"
+    };
+  }
+}
+
+message DeliveryRequest {
+  string order_id = 1;
+  Timestamp schedule_time = 2;
+  string delivery_address = 3;
+}
+
+message StatusUpdate {
+  string delivery_id = 1;  // From path
+  DeliveryStatus status = 2;
+}
+
+message DeliveryQuery {
+  string delivery_id = 1;  // From path
+}
+
+message DeliveryConfirmation {
+  string delivery_id = 1;  // From path
+  string signature = 2;
+}
+
+message DeliveryResponse {
+  string delivery_id = 1;
+  string order_id = 2;
+  DeliveryStatus status = 3;
+  Timestamp scheduled_time = 4;
+  Timestamp actual_delivery_time = 5;
+  BaseResponse base = 6;
+}
+
+enum DeliveryStatus {
+  PENDING = 0;
+  SCHEDULED = 1;
+  IN_TRANSIT = 2;
+  DELIVERED = 3;
+  CANCELLED = 4;
+  DELAYED = 5;
+}
+
+// ----------------------
+// Common Messages
+// ----------------------
+message BaseResponse {
+  int32 code = 1;
+  string message = 2;
+}
+
+message Timestamp {
+  int64 seconds = 1;
+  int32 nanos = 2;
+}
+
+message Empty {}

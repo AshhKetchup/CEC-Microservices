@@ -62,12 +62,16 @@ func InitDB() (*sql.DB, error) {
 }
 
 func createTables() error {
-	_, err := dbInstance.Exec(`CREATE TABLE IF NOT EXISTS products (
-		id VARCHAR(36) PRIMARY KEY,
-		name VARCHAR(255) NOT NULL,
-		description TEXT,
-		price DECIMAL(10,2) NOT NULL,
-		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+	_, err := dbInstance.Exec(`CREATE TABLE deliveries (
+    id VARCHAR(36) PRIMARY KEY,
+    order_id VARCHAR(36) NOT NULL,
+    schedule_time DATETIME NOT NULL,
+    address TEXT NOT NULL,
+    status VARCHAR(20) NOT NULL,
+    signature TEXT,
+    actual_delivery_time DATETIME,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME ON UPDATE CURRENT_TIMESTAMP
 	)`)
 	return err
 }

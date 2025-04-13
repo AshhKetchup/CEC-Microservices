@@ -1,0 +1,67 @@
+syntax = "proto3";
+
+package order_delivery;
+option go_package = "cec/services/order_delivery/proto/gen;order_delivery";
+
+import "google/api/annotations.proto";
+
+// ----------------------
+// Cart Service
+// ----------------------
+service CartService {
+  rpc AddToCart(AddToCartRequest) returns (BaseResponse) {
+    option (google.api.http) = {
+      post: "/cart/{user_id}/items"
+      body: "*"
+    };
+  }
+
+  rpc RemoveFromCart(RemoveFromCartRequest) returns (BaseResponse) {
+    option (google.api.http) = {
+      delete: "/cart/{user_id}/items/{product_id}"
+    };
+  }
+
+  rpc ProcessPayment(PaymentRequest) returns (PaymentResponse) {
+    option (google.api.http) = {
+      post: "/cart/{user_id}/payment"
+      body: "*"
+    };
+  }
+}
+
+message AddToCartRequest {
+  string user_id = 1;  // From path
+  string product_id = 2;
+  int32 quantity = 3;
+}
+
+message RemoveFromCartRequest {
+  string user_id = 1;    // From path
+  string product_id = 2; // From path
+}
+
+message PaymentRequest {
+  string user_id = 1;      // From path
+  string payment_method = 2;
+  double amount = 3;
+  string currency = 4;
+}
+
+message PaymentResponse {
+  string transaction_id = 1;
+  Timestamp payment_time = 2;
+  BaseResponse base = 3;
+}
+
+message BaseResponse {
+  int32 code = 1;
+  string message = 2;
+}
+
+message Timestamp {
+  int64 seconds = 1;
+  int32 nanos = 2;
+}
+
+message Empty {}
