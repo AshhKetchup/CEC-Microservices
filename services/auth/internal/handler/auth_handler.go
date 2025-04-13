@@ -113,6 +113,7 @@ func (s *AuthHandler) ValidateToken(ctx context.Context, req *pb.ValidateTokenRe
 	return &pb.ValidateTokenResponse{
 		Valid:  isValid,
 		UserId: userId,
+		Role:   userRole,
 		Base: &pb.BaseResponse{
 			Code:    int32(codes.OK),
 			Message: "Token validated successfully",

@@ -3,6 +3,7 @@ package db
 import (
 	"database/sql"
 	"fmt"
+	"github.com/joho/godotenv"
 	"os"
 	"time"
 
@@ -15,10 +16,10 @@ var (
 
 // InitDB initializes and returns a database connection
 func InitDB() (*sql.DB, error) {
-	// err := godotenv.Load("auth.env")
-	// if err != nil {
-	// 	return nil, fmt.Errorf("no env found")
-	// }
+	err := godotenv.Load("auth.env")
+	if err != nil {
+		return nil, fmt.Errorf("no env found")
+	}
 
 	if dbInstance == nil {
 		// Get configuration from environment variables
