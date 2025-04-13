@@ -1,3 +1,4 @@
 .env
 product.env
 auth.env
+/.idea
