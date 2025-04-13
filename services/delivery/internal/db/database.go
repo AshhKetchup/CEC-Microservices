@@ -3,6 +3,7 @@ package db
 import (
 	"database/sql"
 	"fmt"
+	"github.com/joho/godotenv"
 	"os"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -14,10 +15,10 @@ var (
 
 // InitDB initializes and returns a database connection
 func InitDB() (*sql.DB, error) {
-	// err := godotenv.Load("product.env")
-	// if err != nil {
-	// 	return nil, fmt.Errorf("no env found")
-	// }
+	err := godotenv.Load("delivery.env")
+	if err != nil {
+		return nil, fmt.Errorf("no env found")
+	}
 
 	if dbInstance == nil {
 		// Get configuration from environment variables
@@ -62,7 +63,7 @@ func InitDB() (*sql.DB, error) {
 }
 
 func createTables() error {
-	_, err := dbInstance.Exec(`CREATE TABLE deliveries (
+	_, err := dbInstance.Exec(`CREATE TABLE IF NOT EXISTS deliveries (
     id VARCHAR(36) PRIMARY KEY,
     order_id VARCHAR(36) NOT NULL,
     schedule_time DATETIME NOT NULL,

@@ -1,7 +1,7 @@
 syntax = "proto3";
 
-package order_delivery;
-option go_package = "cec/services/order_delivery/proto/gen;order_delivery";
+package cart;
+option go_package = "./;cart";
 
 import "google/api/annotations.proto";
 

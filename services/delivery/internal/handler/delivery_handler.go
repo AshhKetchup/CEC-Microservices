@@ -6,7 +6,7 @@ import (
 	"database/sql"
 	"time"
 
-	pb "cec/services/order_delivery/proto/gen"
+	pb "delivery/proto/gen"
 	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -21,13 +21,27 @@ func NewDeliveryHandler(db *sql.DB) *DeliveryHandler {
 	return &DeliveryHandler{db: db}
 }
 
+func protoToTime(ts *pb.Timestamp) time.Time {
+	return time.Unix(ts.Seconds, int64(ts.Nanos)).UTC()
+}
+
+func timeToProto(t time.Time) *pb.Timestamp {
+	return &pb.Timestamp{
+		Seconds: t.Unix(),
+		Nanos:   int32(t.Nanosecond()),
+	}
+}
+
 func (h *DeliveryHandler) ScheduleDelivery(ctx context.Context, req *pb.DeliveryRequest) (*pb.DeliveryResponse, error) {
 	deliveryID := uuid.New().String()
+
+	// Use custom conversion
+	scheduleTime := protoToTime(req.ScheduleTime)
 
 	_, err := h.db.ExecContext(ctx,
 		`INSERT INTO deliveries (id, order_id, schedule_time, address, status)
 		VALUES (?, ?, ?, ?, ?)`,
-		deliveryID, req.OrderId, req.ScheduleTime.AsTime(),
+		deliveryID, req.OrderId, scheduleTime,
 		req.DeliveryAddress, pb.DeliveryStatus_SCHEDULED.String(),
 	)
 
@@ -96,7 +110,8 @@ func (h *DeliveryHandler) ConfirmDelivery(ctx context.Context, req *pb.DeliveryC
 func (h *DeliveryHandler) getDelivery(ctx context.Context, deliveryID string) (*pb.DeliveryResponse, error) {
 	var delivery pb.DeliveryResponse
 	var statusStr string
-	var scheduledTime, actualDeliveryTime time.Time
+	var scheduledTime time.Time
+	var actualDeliveryTime sql.NullTime
 
 	err := h.db.QueryRowContext(ctx,
 		`SELECT id, order_id, status, schedule_time, actual_delivery_time
@@ -120,8 +135,8 @@ func (h *DeliveryHandler) getDelivery(ctx context.Context, deliveryID string) (*
 	delivery.Status = pb.DeliveryStatus(pb.DeliveryStatus_value[statusStr])
 	delivery.ScheduledTime = timeToProto(scheduledTime)
 
-	if !actualDeliveryTime.IsZero() {
-		delivery.ActualDeliveryTime = timeToProto(actualDeliveryTime)
+	if actualDeliveryTime.Valid {
+		delivery.ActualDeliveryTime = timeToProto(actualDeliveryTime.Time)
 	}
 
 	delivery.Base = &pb.BaseResponse{
@@ -130,11 +145,4 @@ func (h *DeliveryHandler) getDelivery(ctx context.Context, deliveryID string) (*
 	}
 
 	return &delivery, nil
-}
-
-func timeToProto(t time.Time) *pb.Timestamp {
-	return &pb.Timestamp{
-		Seconds: t.Unix(),
-		Nanos:   int32(t.Nanosecond()),
-	}
 }

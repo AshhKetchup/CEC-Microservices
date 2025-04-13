@@ -1,6 +1,6 @@
 syntax = "proto3";
 package product;
-option go_package = "cec/services/product/proto/gen;product";
+option go_package = "./;product";
 
 import "google/api/annotations.proto";
 import "google/api/http.proto";
