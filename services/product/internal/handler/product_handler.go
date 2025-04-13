@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	pb "cec/services/product/proto/gen"
+	pb "product/proto/gen/"
 
 	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"

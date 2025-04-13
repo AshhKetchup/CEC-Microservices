@@ -4,18 +4,28 @@ package auth;
 option go_package = "./";
 
 import "google/api/annotations.proto";
-import "google/api/http.proto";
 
 service AuthService {
-  // Existing endpoints
-  rpc Login(LoginRequest) returns (LoginResponse){
+  rpc Login(LoginRequest) returns (LoginResponse) {
     option (google.api.http) = {
       post: "/auth/login"
       body: "*"
     };
-  };
-  rpc Register(RegisterRequest) returns (RegisterResponse);
-  rpc ValidateToken(ValidateTokenRequest) returns (ValidateTokenResponse);
+  }
+
+  rpc Register(RegisterRequest) returns (RegisterResponse) {
+    option (google.api.http) = {
+      post: "/auth/register"
+      body: "*"
+    };
+  }
+
+  rpc ValidateToken(ValidateTokenRequest) returns (ValidateTokenResponse) {
+    option (google.api.http) = {
+      post: "/auth/validate"
+      body: "*"
+    };
+  }
 }
 
 enum UserRole {
@@ -55,7 +65,6 @@ message ValidateTokenResponse {
   BaseResponse base = 4;
 }
 
-// common
 message BaseResponse {
   int32 code = 1;
   string message = 2;
@@ -67,4 +76,3 @@ message Timestamp {
 }
 
 message Empty {}
-// common
