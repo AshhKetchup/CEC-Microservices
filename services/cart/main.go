@@ -7,9 +7,9 @@ import (
 	"os/signal"
 	"syscall"
 
-	"cec/services/cart/internal/db"
-	"cec/services/cart/internal/handler"
-	pb "cec/services/cart/proto/gen"
+	"cart/internal/db"
+	"cart/internal/handler"
+	pb "cart/proto/gen"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health"

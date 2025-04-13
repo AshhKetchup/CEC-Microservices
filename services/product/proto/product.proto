@@ -19,7 +19,7 @@ service ProductService {
     };
   }
 
-  rpc ListProducts(ProductQuery) returns (ProductListResponse) {
+  rpc ListProducts(Empty) returns (ProductListResponse) {
     option (google.api.http) = {
       get: "/v1/items"
     };
@@ -62,11 +62,6 @@ message ProductRequest {
 
 message ProductID {
   string id = 1;
-}
-
-message ProductQuery {
-  int32 page = 1;
-  int32 limit = 2;
 }
 
 message ProductUpdate {

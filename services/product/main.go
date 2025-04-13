@@ -7,9 +7,9 @@ import (
 	"os/signal"
 	"syscall"
 
-	"cec/services/product/internal/db"
-	"cec/services/product/internal/handler"
-	pb "cec/services/product/proto/gen"
+	"product/internal/db"
+	"product/internal/handler"
+	pb "product/proto/gen"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health"
@@ -43,14 +43,14 @@ func main() {
 
 	print("pb func done")
 	// Start server on all interfaces
-	lis, err := net.Listen("tcp", "0.0.0.0:50052")
+	lis, err := net.Listen("tcp", "0.0.0.0:50051")
 	if err != nil {
 		log.Fatalf("Failed to listen: %v", err)
 	}
 
-	log.Println("Listening on port 50052...")
+	log.Println("Listening on port 50051...")
 	go func() {
-		log.Println("Product service running on port 50052")
+		log.Println("Product service running on port 50051")
 		if err := grpcServer.Serve(lis); err != nil {
 			log.Fatalf("Failed to serve: %v", err)
 		}

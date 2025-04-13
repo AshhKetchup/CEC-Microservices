@@ -1,4 +1,3 @@
-// cart_handler.go
 package handler
 
 import (
@@ -7,130 +6,217 @@ import (
 	"fmt"
 	"time"
 
-	pb "cec/services/order_delivery/proto/gen"
+	pb "product/proto/gen"
+
 	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
-type CartHandler struct {
+type ProductHandler struct {
 	db *sql.DB
-	pb.UnimplementedCartServiceServer
+	pb.UnimplementedProductServiceServer
 }
 
-func NewCartHandler(db *sql.DB) *CartHandler {
-	return &CartHandler{db: db}
+func NewProductHandler(db *sql.DB) *ProductHandler {
+	return &ProductHandler{db: db}
 }
 
-func (h *CartHandler) AddToCart(ctx context.Context, req *pb.AddToCartRequest) (*pb.BaseResponse, error) {
-	// Check if product exists
-	var productId string
-	err := h.db.QueryRowContext(ctx,
-		"SELECT id FROM products WHERE id = ?",
-		req.ProductId,
-	).Scan(&productId)
+func (h *ProductHandler) CreateProduct(ctx context.Context, req *pb.ProductRequest) (*pb.ProductResponse, error) {
+	//var createdAt time.Time
+	id := uuid.New().String()
 
-	if err != nil {
-		return nil, status.Errorf(codes.NotFound, "product not found: %v", err)
-	}
-
-	// Upsert cart item
-	_, err = h.db.ExecContext(ctx,
-		`INSERT INTO cart_items (user_id, product_id, quantity) 
-		VALUES (?, ?, ?)
-		ON DUPLICATE KEY UPDATE quantity = quantity + ?`,
-		req.UserId, req.ProductId, req.Quantity, req.Quantity,
+	// Manually provide the ID since MySQL doesn't auto-generate UUIDs
+	_, err := h.db.ExecContext(ctx,
+		`INSERT INTO products (id, name, description, price, created_at) 
+         VALUES (?, ?, ?, ?, ?)`,
+		id, req.Name, req.Description, req.Price, time.Now(),
 	)
-
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to add to cart: %v", err)
+		return nil, status.Errorf(codes.Internal, "failed to create product: %v", err)
 	}
 
-	return &pb.BaseResponse{
-		Code:    int32(codes.OK),
-		Message: "Item added to cart successfully",
-	}, nil
-}
-
-func (h *CartHandler) RemoveFromCart(ctx context.Context, req *pb.RemoveFromCartRequest) (*pb.BaseResponse, error) {
-	result, err := h.db.ExecContext(ctx,
-		"DELETE FROM cart_items WHERE user_id = ? AND product_id = ?",
-		req.UserId, req.ProductId,
-	)
-
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to remove from cart: %v", err)
-	}
-
-	rowsAffected, _ := result.RowsAffected()
-	if rowsAffected == 0 {
-		return nil, status.Error(codes.NotFound, "cart item not found")
-	}
-
-	return &pb.BaseResponse{
-		Code:    int32(codes.OK),
-		Message: "Item removed from cart successfully",
-	}, nil
-}
-
-func (h *CartHandler) ProcessPayment(ctx context.Context, req *pb.PaymentRequest) (*pb.PaymentResponse, error) {
-	// Start transaction
-	tx, err := h.db.BeginTx(ctx, nil)
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to start transaction: %v", err)
-	}
-	defer tx.Rollback()
-
-	// Get cart total
-	var total float64
-	err = tx.QueryRowContext(ctx,
-		`SELECT SUM(p.price * ci.quantity) 
-		FROM cart_items ci
-		JOIN products p ON ci.product_id = p.id
-		WHERE ci.user_id = ?`,
-		req.UserId,
-	).Scan(&total)
-
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to calculate total: %v", err)
-	}
-
-	// Create payment record
-	txID := uuid.New().String()
-	_, err = tx.ExecContext(ctx,
-		`INSERT INTO payments (transaction_id, user_id, amount, currency, status) 
-		VALUES (?, ?, ?, ?, 'COMPLETED')`,
-		txID, req.UserId, total, req.Currency,
-	)
-
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "payment processing failed: %v", err)
-	}
-
-	// Clear cart
-	_, err = tx.ExecContext(ctx,
-		"DELETE FROM cart_items WHERE user_id = ?",
-		req.UserId,
-	)
-
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to clear cart: %v", err)
-	}
-
-	// Commit transaction
-	if err = tx.Commit(); err != nil {
-		return nil, status.Errorf(codes.Internal, "transaction commit failed: %v", err)
-	}
-
-	return &pb.PaymentResponse{
-		TransactionId: txID,
-		PaymentTime: &pb.Timestamp{
+	// Return constructed ProductResponse
+	return &pb.ProductResponse{
+		Id:          id,
+		Name:        req.Name,
+		Description: req.Description,
+		Price:       req.Price,
+		CreatedAt: &pb.Timestamp{
 			Seconds: time.Now().Unix(),
 			Nanos:   int32(time.Now().Nanosecond()),
 		},
 		Base: &pb.BaseResponse{
 			Code:    int32(codes.OK),
-			Message: "Payment processed successfully",
+			Message: "Product created successfully",
 		},
+	}, nil
+}
+
+func (h *ProductHandler) GetProduct(ctx context.Context, req *pb.ProductID) (*pb.ProductResponse, error) {
+	var product pb.ProductResponse
+	var createdAt time.Time
+
+	err := h.db.QueryRowContext(ctx,
+		`SELECT id, name, description, price, created_at 
+         FROM products 
+         WHERE id = ?`,
+		req.Id,
+	).Scan(&product.Id, &product.Name, &product.Description, &product.Price, &createdAt)
+
+	switch {
+	case err == sql.ErrNoRows:
+		return nil, status.Error(codes.NotFound, "product not found")
+	case err != nil:
+		return nil, status.Errorf(codes.Internal,
+			"failed to get product: %v", err)
+	}
+
+	product.CreatedAt = &pb.Timestamp{
+		Seconds: createdAt.Unix(),
+		Nanos:   int32(createdAt.Nanosecond()),
+	}
+
+	product.Base = &pb.BaseResponse{
+		Code:    int32(codes.OK),
+		Message: "Product retrieved successfully",
+	}
+
+	return &product, nil
+}
+
+func (h *ProductHandler) ListProducts(ctx context.Context, _ *pb.Empty) (*pb.ProductListResponse, error) {
+	response := &pb.ProductListResponse{
+		Products: []*pb.ProductResponse{},
+		Base: &pb.BaseResponse{
+			Code: int32(codes.OK),
+		},
+	}
+
+	// Get all products
+	rows, err := h.db.QueryContext(ctx,
+		`SELECT id, name, description, price, created_at 
+         FROM products 
+         ORDER BY created_at DESC`)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal,
+			"failed to list products: %v", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var product pb.ProductResponse
+		var createdAt time.Time
+
+		if err := rows.Scan(
+			&product.Id, &product.Name,
+			&product.Description, &product.Price, &createdAt,
+		); err != nil {
+			return nil, status.Errorf(codes.Internal,
+				"failed to scan product: %v", err)
+		}
+
+		product.CreatedAt = &pb.Timestamp{
+			Seconds: createdAt.Unix(),
+			Nanos:   int32(createdAt.Nanosecond()),
+		}
+
+		response.Products = append(response.Products, &product)
+	}
+
+	response.Base.Message = fmt.Sprintf("Found %d products", len(response.Products))
+	return response, nil
+}
+func (h *ProductHandler) UpdateProduct(ctx context.Context, req *pb.ProductUpdate) (*pb.ProductResponse, error) {
+	var product pb.ProductResponse
+	var createdAt time.Time
+
+	// Check if product exists
+	err := h.db.QueryRowContext(ctx,
+		"SELECT id FROM products WHERE id = ?",
+		req.Id,
+	).Scan(&product.Id)
+
+	switch {
+	case err == sql.ErrNoRows:
+		return nil, status.Error(codes.NotFound, "product not found")
+	case err != nil:
+		return nil, status.Errorf(codes.Internal,
+			"failed to verify product: %v", err)
+	}
+
+	// Update product
+	result, err := h.db.ExecContext(ctx,
+		`UPDATE products 
+         SET name = ?, description = ?, price = ? 
+         WHERE id = ?`,
+		req.Name, req.Description, req.Price, req.Id,
+	)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal,
+			"failed to update product: %v", err)
+	}
+
+	rowsAffected, _ := result.RowsAffected()
+	if rowsAffected == 0 {
+		return nil, status.Error(codes.NotFound, "product not found")
+	}
+
+	// Get updated product
+	err = h.db.QueryRowContext(ctx,
+		`SELECT id, name, description, price, created_at 
+         FROM products 
+         WHERE id = ?`,
+		req.Id,
+	).Scan(&product.Id, &product.Name, &product.Description,
+		&product.Price, &createdAt)
+
+	if err != nil {
+		return nil, status.Errorf(codes.Internal,
+			"failed to get updated product: %v", err)
+	}
+
+	product.CreatedAt = &pb.Timestamp{
+		Seconds: createdAt.Unix(),
+		Nanos:   int32(createdAt.Nanosecond()),
+	}
+
+	product.Base = &pb.BaseResponse{
+		Code:    int32(codes.OK),
+		Message: "Product updated successfully",
+	}
+
+	return &product, nil
+}
+
+func (h *ProductHandler) DeleteProduct(ctx context.Context, req *pb.ProductID) (*pb.BaseResponse, error) {
+	// Check if product exists
+	var id string
+	err := h.db.QueryRowContext(ctx,
+		"SELECT id FROM products WHERE id = ?",
+		req.Id,
+	).Scan(&id)
+
+	switch {
+	case err == sql.ErrNoRows:
+		return nil, status.Error(codes.NotFound, "product not found")
+	case err != nil:
+		return nil, status.Errorf(codes.Internal,
+			"failed to verify product: %v", err)
+	}
+
+	// Delete product
+	_, err = h.db.ExecContext(ctx,
+		"DELETE FROM products WHERE id = ?",
+		req.Id,
+	)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal,
+			"failed to delete product: %v", err)
+	}
+
+	return &pb.BaseResponse{
+		Code:    int32(codes.OK),
+		Message: "Product deleted successfully",
 	}, nil
 }
