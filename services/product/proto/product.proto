@@ -7,15 +7,36 @@ import "google/api/http.proto";
 
 service ProductService {
   rpc CreateProduct(ProductRequest) returns (ProductResponse) {
-    option (google.api.http) = {  // Use the annotation
+    option (google.api.http) = {
       post: "/v1/items/{id}"
       body: "*"
     };
   }
-  rpc GetProduct(ProductID) returns (ProductResponse);
-  rpc ListProducts(ProductQuery) returns (ProductListResponse);
-  rpc UpdateProduct(ProductUpdate) returns (ProductResponse);
-  rpc DeleteProduct(ProductID) returns (BaseResponse);
+
+  rpc GetProduct(ProductID) returns (ProductResponse) {
+    option (google.api.http) = {
+      get: "/v1/items/{id}"
+    };
+  }
+
+  rpc ListProducts(ProductQuery) returns (ProductListResponse) {
+    option (google.api.http) = {
+      get: "/v1/items"
+    };
+  }
+
+  rpc UpdateProduct(ProductUpdate) returns (ProductResponse) {
+    option (google.api.http) = {
+      put: "/v1/items/{id}"
+      body: "*"
+    };
+  }
+
+  rpc DeleteProduct(ProductID) returns (BaseResponse) {
+    option (google.api.http) = {
+      delete: "/v1/items/{id}"
+    };
+  }
 }
 
 // common
