@@ -1,4 +1,6 @@
 .env
 product.env
 auth.env
+delivery.env
+cart.env
 /.idea
