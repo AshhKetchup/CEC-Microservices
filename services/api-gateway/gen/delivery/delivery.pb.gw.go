@@ -6,7 +6,7 @@ Package delivery is a reverse proxy.
 
 It translates gRPC into RESTful JSON APIs.
 */
-package delivery
+package gen
 
 import (
 	"context"

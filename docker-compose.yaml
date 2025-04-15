@@ -1,4 +1,4 @@
-version: '1.0'
+version: '3.8'
 
 services:
   # API Gateway
@@ -8,15 +8,10 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - AUTH_SERVICE_ADDR=auth-service:50051
+      - AUTH_SERVICE_ADDR=auth-service:50051  
       - PRODUCT_SERVICE_ADDR=product-service:50052
       - CART_SERVICE_ADDR=cart-service:50053
       - DELIVERY_SERVICE_ADDR=delivery-service:50054
-    depends_on:
-     # - auth-service
-      - product-service
-     # - cart-service
-     # - delivery-service
     networks:
       - microservices-network
 
@@ -70,9 +65,10 @@ services:
       - DB_PASSWORD=cartpass
       - DB_NAME=cart_db
       - AUTH_SERVICE_ADDR=auth-service:50051
+    restart: on-failure
     depends_on:
       - mysql
-      - auth-service
+     # - auth-service
     networks:
       - microservices-network
 
@@ -89,6 +85,7 @@ services:
       - DB_PASSWORD=deliverypass
       - DB_NAME=delivery_db
       - CART_SERVICE_ADDR=cart-service:50053
+    restart: on-failure
     depends_on:
       - mysql
       - cart-service

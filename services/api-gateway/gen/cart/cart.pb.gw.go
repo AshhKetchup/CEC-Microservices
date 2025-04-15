@@ -6,7 +6,7 @@ Package cart is a reverse proxy.
 
 It translates gRPC into RESTful JSON APIs.
 */
-package cart
+package gen
 
 import (
 	"context"

@@ -4,53 +4,65 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	// Update the import path below to match the generated package location.
+	authpb "cec/service/api-gateway/gen/auth"
+	cartpb "cec/service/api-gateway/gen/cart"
+	deliverypb "cec/service/api-gateway/gen/delivery"
 	productpb "cec/service/api-gateway/gen/product"
 )
 
 func main() {
-	// Create a root context.
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	// Create a new gRPC-Gateway mux.
+	// gRPC-Gateway mux
 	gwMux := runtime.NewServeMux()
 
-	// Dial options for connecting insecurely.
+	// Common dial options
 	opts := []grpc.DialOption{
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	}
 
-	// Register the ProductService endpoint.
-	// The endpoint here ("product-service:50052") should match the target
-	// gRPC server. In a Docker environment, this would be the name of the service.
-	err := productpb.RegisterProductServiceHandlerFromEndpoint(
-		ctx,
-		gwMux,
-		"product-service:50052",
-		opts,
-	)
-	if err != nil {
+	// Get service addresses from environment variables
+	authAddr := os.Getenv("AUTH_SERVICE_ADDR")
+	productAddr := os.Getenv("PRODUCT_SERVICE_ADDR")
+	cartAddr := os.Getenv("CART_SERVICE_ADDR")
+	deliveryAddr := os.Getenv("DELIVERY_SERVICE_ADDR")
+
+	// Register all gRPC service handlers
+
+	if err := authpb.RegisterAuthServiceHandlerFromEndpoint(ctx, gwMux, authAddr, opts); err != nil {
+		log.Fatalf("Failed to register AuthService handler: %v", err)
+	}
+
+	if err := productpb.RegisterProductServiceHandlerFromEndpoint(ctx, gwMux, productAddr, opts); err != nil {
 		log.Fatalf("Failed to register ProductService handler: %v", err)
 	}
 
-	// You can also add additional REST endpoints.
-	// For example, a simple health check.
+	if err := cartpb.RegisterCartServiceHandlerFromEndpoint(ctx, gwMux, cartAddr, opts); err != nil {
+		log.Fatalf("Failed to register CartService handler: %v", err)
+	}
+
+	if err := deliverypb.RegisterDeliveryServiceHandlerFromEndpoint(ctx, gwMux, deliveryAddr, opts); err != nil {
+		log.Fatalf("Failed to register DeliveryService handler: %v", err)
+	}
+
+	// Optional REST endpoints (e.g. health check)
 	httpMux := http.NewServeMux()
 	httpMux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("OK"))
 	})
-	// Mount the gRPC-Gateway mux on the root.
+
+	// Mount gRPC-Gateway mux
 	httpMux.Handle("/", gwMux)
 
-	// Start the HTTP server (API Gateway).
 	log.Println("API Gateway is listening on :8080")
 	if err := http.ListenAndServe(":8080", httpMux); err != nil {
 		log.Fatalf("Failed to start API Gateway: %v", err)
