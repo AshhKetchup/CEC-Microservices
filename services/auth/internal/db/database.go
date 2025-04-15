@@ -3,7 +3,7 @@ package db
 import (
 	"database/sql"
 	"fmt"
-	"github.com/joho/godotenv"
+
 	"os"
 	"time"
 
@@ -16,23 +16,26 @@ var (
 
 // InitDB initializes and returns a database connection
 func InitDB() (*sql.DB, error) {
-	err := godotenv.Load("auth.env")
-	if err != nil {
-		return nil, fmt.Errorf("no env found")
-	}
+	//err := godotenv.Load("auth.env")
+	//if err != nil {
+	//	return nil, fmt.Errorf("no env found")
+	//}
 
 	if dbInstance == nil {
 		// Get configuration from environment variables
 		dbHost := os.Getenv("DB_HOST")
 		dbPort := os.Getenv("DB_PORT")
 		dbName := os.Getenv("DB_NAME")
+		dbUser := os.Getenv("DB_USER")
 		sslMode := os.Getenv("DB_SSLMODE")
+		fmt.Printf("DB_HOST: %s, DB_PORT: %s\n, DB_USER", dbHost, dbPort, dbName)
 
 		// Create connection string
-		dsn := fmt.Sprintf("host=%s port=%s dbname=%s sslmode=%s",
-			dbHost, dbPort, dbName, sslMode)
+		dsn := fmt.Sprintf("host=%s port=%s dbname=%s user=%s sslmode=%s",
+			dbHost, dbPort, dbName, dbUser, sslMode)
 
 		// Open connection
+		var err error
 		dbInstance, err = sql.Open("postgres", dsn)
 		if err != nil {
 			return nil, fmt.Errorf("failed to open database: %w", err)

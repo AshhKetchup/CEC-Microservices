@@ -24,10 +24,11 @@ services:
     environment:
       - DB_HOST=postgres
       - DB_PORT=5432
-      - DB_USER=auth_user
-      - DB_PASSWORD=authpass
+      - DB_USER=postgres
       - DB_NAME=auth_db
-      - JWT_SECRET=secret-key
+      - JWT_SECRET_KEY=aayus
+      - JWT_EXPIRATION_HOURS=24
+      - JWT_ISSUER=cec-auth-service
     depends_on:
       postgres:
         condition: service_healthy
@@ -68,7 +69,7 @@ services:
     restart: on-failure
     depends_on:
       - mysql
-     # - auth-service
+      - auth-service
     networks:
       - microservices-network
 
@@ -85,7 +86,6 @@ services:
       - DB_PASSWORD=deliverypass
       - DB_NAME=delivery_db
       - CART_SERVICE_ADDR=cart-service:50053
-    restart: on-failure
     depends_on:
       - mysql
       - cart-service
@@ -115,8 +115,8 @@ services:
     image: postgres:16
     container_name: postgres
     environment:
-      POSTGRES_USER: root
-      POSTGRES_DB: postgres_db
+      POSTGRES_USER: postgres
+      POSTGRES_DB: auth_db
       POSTGRES_HOST_AUTH_METHOD: trust
     volumes:
       - ./services/postgres/:/docker-entrypoint-initdb.d

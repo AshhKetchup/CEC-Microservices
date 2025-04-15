@@ -1,4 +1,4 @@
-CREATE DATABASE IF NOT EXISTS auth_db;
-CREATE USER IF NOT EXISTS 'auth_user'@'%' IDENTIFIED BY 'authpass';
-GRANT ALL PRIVILEGES ON auth_db.* TO 'auth_user'@'%';
-FLUSH PRIVILEGES;
+\connect postgres
+SELECT 'CREATE DATABASE auth_db'
+WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'auth_db')
+\gexec
