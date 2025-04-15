@@ -11,6 +11,6 @@ RUN go mod download
 COPY . .
 
 
-EXPOSE 50051
+EXPOSE 50053
 # Run the application
 CMD ["go", "run", "."]

@@ -9,39 +9,50 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	gw "cec/service/api-gateway/gen/product"
+	// Update the import path below to match the generated package location.
+	productpb "cec/service/api-gateway/gen/product"
 )
 
 func main() {
+	// Create a root context.
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	mux := runtime.NewServeMux()
+	// Create a new gRPC-Gateway mux.
+	gwMux := runtime.NewServeMux()
 
+	// Dial options for connecting insecurely.
 	opts := []grpc.DialOption{
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	}
 
-	// Product Service Connection
-	err := gw.RegisterProductServiceHandlerFromEndpoint(
+	// Register the ProductService endpoint.
+	// The endpoint here ("product-service:50052") should match the target
+	// gRPC server. In a Docker environment, this would be the name of the service.
+	err := productpb.RegisterProductServiceHandlerFromEndpoint(
 		ctx,
-		mux,
-		"product-service:50052", // Must match Docker service name
+		gwMux,
+		"product-service:50052",
 		opts,
 	)
 	if err != nil {
-		log.Fatalf("Failed to connect to product service: %v", err)
+		log.Fatalf("Failed to register ProductService handler: %v", err)
 	}
 
-	// Health Check Endpoint
-	mux.HandlePath("GET", "/health", func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
+	// You can also add additional REST endpoints.
+	// For example, a simple health check.
+	httpMux := http.NewServeMux()
+	httpMux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("OK"))
 	})
+	// Mount the gRPC-Gateway mux on the root.
+	httpMux.Handle("/", gwMux)
 
-	log.Println("Starting API Gateway on :8080")
-	if err := http.ListenAndServe(":8080", mux); err != nil {
-		log.Fatalf("Failed to start server: %v", err)
+	// Start the HTTP server (API Gateway).
+	log.Println("API Gateway is listening on :8080")
+	if err := http.ListenAndServe(":8080", httpMux); err != nil {
+		log.Fatalf("Failed to start API Gateway: %v", err)
 	}
 }

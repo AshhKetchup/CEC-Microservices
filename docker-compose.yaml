@@ -9,12 +9,12 @@ services:
     environment:
       - AUTH_SERVICE_ADDR=auth-service:50051
       - PRODUCT_SERVICE_ADDR=product-service:50052
-      - ORDER_SERVICE_ADDR=order-service:50053
+      - CART_SERVICE_ADDR=cart-service:50053
       - DELIVERY_SERVICE_ADDR=delivery-service:50054
     depends_on:
       - auth-service
       - product-service
-      - order-service
+      - cart-service
       - delivery-service
     networks:
       - microservices-network
@@ -32,7 +32,7 @@ services:
       - DB_NAME=auth_db
       - JWT_SECRET=secret-key
     depends_on:
-      mysql:
+      postgres:
         condition: service_healthy
     networks:
       - microservices-network
@@ -49,7 +49,7 @@ services:
       - DB_PASSWORD=product_pass
       - DB_NAME=product_db
     depends_on:
-      mysql-db:
+      mysql:
         condition: service_healthy
     networks:
       - microservices-network
@@ -78,15 +78,15 @@ services:
     ports:
       - "50054:50054"
     environment:
-      - DB_HOST=mysql-db
+      - DB_HOST=mysql
       - DB_PORT=3306
       - DB_USER=delivery_user
       - DB_PASSWORD=delivery_pass
       - DB_NAME=delivery_db
-      - ORDER_SERVICE_ADDR=order-service:50053
+      - CART_SERVICE_ADDR=cart-service:50053
     depends_on:
       - mysql
-      - order-service
+      - cart-service
     networks:
       - microservices-network
 
@@ -98,7 +98,7 @@ services:
     ports:
       - "3306:3306"
     volumes:
-      - ./mysql/:docker-entrypoint-initdb.d
+      - ./services/mysql/:/docker-entrypoint-initdb.d
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 5s
@@ -113,8 +113,9 @@ services:
     environment:
       POSTGRES_USER: root
       POSTGRES_DB: postgres_db
+      POSTGRES_HOST_AUTH_METHOD: trust
     volumes:
-      - ./postgres/:/docker-entrypoint-initdb.d
+      - ./services/postgres/:/docker-entrypoint-initdb.d
     ports:
       - "5432:5432"
     healthcheck:
