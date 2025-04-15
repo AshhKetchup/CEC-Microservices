@@ -55,16 +55,16 @@ services:
       - microservices-network
 
   # Order Service
-  order-service:
-    build: ./services/order
+  cart-service:
+    build: ./services/cart
     ports:
       - "50053:50053"
     environment:
       - DB_HOST=mysql
       - DB_PORT=3306
-      - DB_USER=order_user
-      - DB_PASSWORD=order_pass
-      - DB_NAME=order_db
+      - DB_USER=cart_user
+      - DB_PASSWORD=cart_pass
+      - DB_NAME=cart_db
       - AUTH_SERVICE_ADDR=auth-service:50051
     depends_on:
       - mysql
