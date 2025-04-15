@@ -7,7 +7,6 @@ import (
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/joho/godotenv"
 )
 
 var (
@@ -15,10 +14,10 @@ var (
 )
 
 func InitDB() (*sql.DB, error) {
-	err := godotenv.Load("cart.env")
-	if err != nil {
-		return nil, fmt.Errorf("error loading .env file: %w", err)
-	}
+	// err := godotenv.Load("cart.env")
+	// if err != nil {
+	// 	return nil, fmt.Errorf("error loading .env file: %w", err)
+	// }
 
 	if dbInstance == nil {
 		dbHost := os.Getenv("DB_HOST")
@@ -31,6 +30,7 @@ func InitDB() (*sql.DB, error) {
 		dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true&multiStatements=true",
 			dbUser, dbPass, dbHost, dbPort, dbName)
 
+		var err error
 		dbInstance, err = sql.Open("mysql", dsn)
 		if err != nil {
 			return nil, fmt.Errorf("failed to open database: %w", err)

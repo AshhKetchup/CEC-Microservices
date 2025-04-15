@@ -43,14 +43,14 @@ func main() {
 
 	print("pb func done")
 	// Start server on all interfaces
-	lis, err := net.Listen("tcp", "0.0.0.0:50051")
+	lis, err := net.Listen("tcp", "0.0.0.0:50052")
 	if err != nil {
 		log.Fatalf("Failed to listen: %v", err)
 	}
 
-	log.Println("Listening on port 50051...")
+	log.Println("Listening on port 50052...")
 	go func() {
-		log.Println("Product service running on port 50051")
+		log.Println("Product service running on port 50052")
 		if err := grpcServer.Serve(lis); err != nil {
 			log.Fatalf("Failed to serve: %v", err)
 		}

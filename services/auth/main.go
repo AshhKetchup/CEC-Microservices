@@ -29,13 +29,13 @@ func main() {
 	reflection.Register(grpcServer)
 
 	// Start server
-	lis, err := net.Listen("tcp", ":50052")
+	lis, err := net.Listen("tcp", ":50051")
 	if err != nil {
 		log.Fatalf("Failed to listen: %v", err)
 	}
 
 	go func() {
-		log.Println("Auth service running on port 50052")
+		log.Println("Auth service running on port 50051")
 		if err := grpcServer.Serve(lis); err != nil {
 			log.Fatalf("Failed to serve: %v", err)
 		}

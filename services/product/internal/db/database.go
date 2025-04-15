@@ -3,7 +3,6 @@ package db
 import (
 	"database/sql"
 	"fmt"
-	"github.com/joho/godotenv"
 	"os"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -15,10 +14,10 @@ var (
 
 // InitDB initializes and returns a database connection
 func InitDB() (*sql.DB, error) {
-	err := godotenv.Load("product.env")
-	if err != nil {
-		return nil, fmt.Errorf("no env found")
-	}
+	// err := godotenv.Load("product.env")
+	// if err != nil {
+	// 	return nil, fmt.Errorf("no env found")
+	// }
 
 	if dbInstance == nil {
 		// Get configuration from environment variables
@@ -33,7 +32,7 @@ func InitDB() (*sql.DB, error) {
 			dbUser, dbPass, dbHost, dbPort, dbName)
 
 		// Open connection
-		print("Connecting to database...")
+		fmt.Printf("Connecting to database...dns: %s", dsn)
 		var err error
 		dbInstance, err = sql.Open("mysql", dsn)
 		if err != nil {

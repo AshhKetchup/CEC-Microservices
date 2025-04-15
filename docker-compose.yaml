@@ -3,7 +3,8 @@ version: '1.0'
 services:
   # API Gateway
   api-gateway:
-    build: ./services/gateway
+    build: ./services/api-gateway
+    container_name: api-gateway
     ports:
       - "8080:8080"
     environment:
@@ -12,23 +13,24 @@ services:
       - CART_SERVICE_ADDR=cart-service:50053
       - DELIVERY_SERVICE_ADDR=delivery-service:50054
     depends_on:
-      - auth-service
+     # - auth-service
       - product-service
-      - cart-service
-      - delivery-service
+     # - cart-service
+     # - delivery-service
     networks:
       - microservices-network
 
   # Auth Service
   auth-service:
     build: ./services/auth
+    container_name: auth-service
     ports:
       - "50051:50051"
     environment:
-      - DB_HOST=mysql
-      - DB_PORT=3306
+      - DB_HOST=postgres
+      - DB_PORT=5432
       - DB_USER=auth_user
-      - DB_PASSWORD=auth_pass
+      - DB_PASSWORD=authpass
       - DB_NAME=auth_db
       - JWT_SECRET=secret-key
     depends_on:
@@ -40,13 +42,14 @@ services:
   # Product Service
   product-service:
     build: ./services/product
+    container_name: product-service
     ports:
       - "50052:50052"
     environment:
       - DB_HOST=mysql
       - DB_PORT=3306
       - DB_USER=product_user
-      - DB_PASSWORD=product_pass
+      - DB_PASSWORD=productpass
       - DB_NAME=product_db
     depends_on:
       mysql:
@@ -57,13 +60,14 @@ services:
   # Order Service
   cart-service:
     build: ./services/cart
+    container_name: cart-service
     ports:
       - "50053:50053"
     environment:
       - DB_HOST=mysql
       - DB_PORT=3306
       - DB_USER=cart_user
-      - DB_PASSWORD=cart_pass
+      - DB_PASSWORD=cartpass
       - DB_NAME=cart_db
       - AUTH_SERVICE_ADDR=auth-service:50051
     depends_on:
@@ -75,13 +79,14 @@ services:
   # Delivery Service
   delivery-service:
     build: ./services/delivery
+    container_name: delivery-service
     ports:
       - "50054:50054"
     environment:
       - DB_HOST=mysql
       - DB_PORT=3306
       - DB_USER=delivery_user
-      - DB_PASSWORD=delivery_pass
+      - DB_PASSWORD=deliverypass
       - DB_NAME=delivery_db
       - CART_SERVICE_ADDR=cart-service:50053
     depends_on:
@@ -93,6 +98,7 @@ services:
   # MySQL Database
   mysql:
     image: mysql:8.0
+    container_name: mysql
     environment:
       MYSQL_ROOT_PASSWORD: rootpassword
     ports:
@@ -107,9 +113,10 @@ services:
     networks:
       - microservices-network
 
-      # PostgreSQL Database
+  # PostgreSQL Database
   postgres:
     image: postgres:16
+    container_name: postgres
     environment:
       POSTGRES_USER: root
       POSTGRES_DB: postgres_db
