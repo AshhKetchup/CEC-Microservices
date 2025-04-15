@@ -1,0 +1,134 @@
+version: '1.0'
+
+services:
+  # API Gateway
+  api-gateway:
+    build: ./services/gateway
+    ports:
+      - "8080:8080"
+    environment:
+      - AUTH_SERVICE_ADDR=auth-service:50051
+      - PRODUCT_SERVICE_ADDR=product-service:50052
+      - ORDER_SERVICE_ADDR=order-service:50053
+      - DELIVERY_SERVICE_ADDR=delivery-service:50054
+    depends_on:
+      - auth-service
+      - product-service
+      - order-service
+      - delivery-service
+    networks:
+      - microservices-network
+
+  # Auth Service
+  auth-service:
+    build: ./services/auth
+    ports:
+      - "50051:50051"
+    environment:
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_USER=auth_user
+      - DB_PASSWORD=auth_pass
+      - DB_NAME=auth_db
+      - JWT_SECRET=secret-key
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - microservices-network
+
+  # Product Service
+  product-service:
+    build: ./services/product
+    ports:
+      - "50052:50052"
+    environment:
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_USER=product_user
+      - DB_PASSWORD=product_pass
+      - DB_NAME=product_db
+    depends_on:
+      mysql-db:
+        condition: service_healthy
+    networks:
+      - microservices-network
+
+  # Order Service
+  order-service:
+    build: ./services/order
+    ports:
+      - "50053:50053"
+    environment:
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_USER=order_user
+      - DB_PASSWORD=order_pass
+      - DB_NAME=order_db
+      - AUTH_SERVICE_ADDR=auth-service:50051
+    depends_on:
+      - mysql
+      - auth-service
+    networks:
+      - microservices-network
+
+  # Delivery Service
+  delivery-service:
+    build: ./services/delivery
+    ports:
+      - "50054:50054"
+    environment:
+      - DB_HOST=mysql-db
+      - DB_PORT=3306
+      - DB_USER=delivery_user
+      - DB_PASSWORD=delivery_pass
+      - DB_NAME=delivery_db
+      - ORDER_SERVICE_ADDR=order-service:50053
+    depends_on:
+      - mysql
+      - order-service
+    networks:
+      - microservices-network
+
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./mysql/:docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - microservices-network
+
+      # PostgreSQL Database
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_DB: postgres_db
+    volumes:
+      - ./postgres/:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - microservices-network
+
+
+volumes:
+  mysql-data:
+
+networks:
+  microservices-network:
+    driver: bridge
