@@ -3,7 +3,7 @@ version: '3.8'
 services:
   # API Gateway
   api-gateway:
-    build: ./services/api-gateway
+    image: ash784/cec-microservices:cec-microservices-api-gateway-v1.0
     container_name: api-gateway
     ports:
       - "8080:8080"
@@ -17,7 +17,7 @@ services:
 
   # Auth Service
   auth-service:
-    build: ./services/auth
+    image: ash784/cec-microservices:cec-microservices-auth-service-v1.0
     container_name: auth-service
     ports:
       - "50051:50051"
@@ -26,6 +26,7 @@ services:
       - DB_PORT=5432
       - DB_USER=postgres
       - DB_NAME=auth_db
+      - DB_SSLMODE=disable
       - JWT_SECRET_KEY=aayus
       - JWT_EXPIRATION_HOURS=24
       - JWT_ISSUER=cec-auth-service
@@ -37,7 +38,7 @@ services:
 
   # Product Service
   product-service:
-    build: ./services/product
+    image: ash784/cec-microservices:cec-microservices-product-service-v1.0
     container_name: product-service
     ports:
       - "50052:50052"
@@ -55,7 +56,7 @@ services:
 
   # Order Service
   cart-service:
-    build: ./services/cart
+    image: ash784/cec-microservices:cec-microservices-cart-service-v1.0
     container_name: cart-service
     ports:
       - "50053:50053"
@@ -75,7 +76,7 @@ services:
 
   # Delivery Service
   delivery-service:
-    build: ./services/delivery
+    image: ash784/cec-microservices:cec-microservices-delivery-service-v1.0
     container_name: delivery-service
     ports:
       - "50054:50054"
