@@ -21,8 +21,6 @@ spec:
         envFrom:
         - configMapRef:
             name: cart-config
-        - secretRef:
-            name: cart-secret
         readinessProbe:
           exec:
             command: ["grpc_health_probe", "-addr=:50053"]

@@ -10,7 +10,6 @@ RUN go mod download
 # Copy all files from current directory
 COPY . .
 
-
 EXPOSE 50053
 # Run the application
 CMD ["go", "run", "."]

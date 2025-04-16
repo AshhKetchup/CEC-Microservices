@@ -7,5 +7,7 @@ data:
   DB_HOST: "postgres"
   DB_PORT: "5432"
   DB_NAME: "auth_db"
+  DB_USER: "postgres"
+  DB_SSLMODE: "disable"
   JWT_ISSUER: "cec-auth-service"
   JWT_EXPIRATION_HOURS: "24"
