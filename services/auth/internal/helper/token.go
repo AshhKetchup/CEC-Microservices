@@ -3,7 +3,6 @@ package helper
 import (
 	"fmt"
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/joho/godotenv"
 	"os"
 	"strconv"
 	"time"
@@ -22,9 +21,9 @@ type CustomClaims struct {
 }
 
 func init() {
-	if err := godotenv.Load("auth.env"); err != nil {
-		panic(fmt.Sprintf("Error loading .env file: %v", err))
-	}
+	//if err := godotenv.Load("auth.env"); err != nil {
+	//	panic(fmt.Sprintf("Error loading .env file: %v", err))
+	//}
 
 	jwtSecretKey = os.Getenv("JWT_SECRET_KEY")
 	if jwtSecretKey == "" {

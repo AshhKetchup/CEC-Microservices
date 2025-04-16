@@ -1,4 +1,4 @@
-module cec/service/api-gateway
+module api-gateway
 
 go 1.24.1
 

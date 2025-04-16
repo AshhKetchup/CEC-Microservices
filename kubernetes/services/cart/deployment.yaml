@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cart-service
+  namespace: microservices
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: cart-service
+  template:
+    metadata:
+      labels:
+        app: cart-service
+    spec:
+      containers:
+      - name: cart-service
+        image: jarviss77/cart-service:latest
+        ports:
+        - containerPort: 50053
+        envFrom:
+        - configMapRef:
+            name: cart-config
+        - secretRef:
+            name: cart-secret
+        readinessProbe:
+          exec:
+            command: ["grpc_health_probe", "-addr=:50053"]
+          initialDelaySeconds: 5
+          periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cart-service
+  namespace: microservices
+spec:
+  selector:
+    app: cart-service
+  ports:
+    - name: grpc
+      port: 50053
+      targetPort: 50053
