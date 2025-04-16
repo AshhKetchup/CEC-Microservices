@@ -4,6 +4,7 @@ services:
   # API Gateway
   api-gateway:
     build: ./services/api-gateway
+    image: jarvis77/api-gateway:latest
     container_name: api-gateway
     ports:
       - "8080:8080"
@@ -11,13 +12,14 @@ services:
       - AUTH_SERVICE_ADDR=auth-service:50051  
       - PRODUCT_SERVICE_ADDR=product-service:50052
       - CART_SERVICE_ADDR=cart-service:50053
-      - DELIVERY_SERVICE_ADDR=delivery-service:50054
+      - DELIVERY_SERVICE_ADDR=delivery.yaml-service:50054
     networks:
       - microservices-network
 
   # Auth Service
   auth-service:
     build: ./services/auth
+    image: jarvis77/auth-service:latest
     container_name: auth-service
     ports:
       - "50051:50051"
@@ -38,6 +40,7 @@ services:
   # Product Service
   product-service:
     build: ./services/product
+    image: jarvis77/product-service:latest
     container_name: product-service
     ports:
       - "50052:50052"
@@ -56,6 +59,7 @@ services:
   # Order Service
   cart-service:
     build: ./services/cart
+    image: jarvis77/cart-service:latest
     container_name: cart-service
     ports:
       - "50053:50053"
@@ -76,6 +80,7 @@ services:
   # Delivery Service
   delivery-service:
     build: ./services/delivery
+    image: jarvis77/delivery-service:latest
     container_name: delivery-service
     ports:
       - "50054:50054"
