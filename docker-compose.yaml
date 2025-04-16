@@ -28,6 +28,7 @@ services:
       - DB_PORT=5432
       - DB_USER=postgres
       - DB_NAME=auth_db
+      - DB_SSLMODE=disable
       - JWT_SECRET_KEY=aayus
       - JWT_EXPIRATION_HOURS=24
       - JWT_ISSUER=cec-auth-service
