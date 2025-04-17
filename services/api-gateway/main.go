@@ -10,10 +10,10 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	authpb "cec/service/api-gateway/gen/auth"
-	cartpb "cec/service/api-gateway/gen/cart"
-	deliverypb "cec/service/api-gateway/gen/delivery"
-	productpb "cec/service/api-gateway/gen/product"
+	authpb "api-gateway/gen/auth"
+	cartpb "api-gateway/gen/cart"
+	deliverypb "api-gateway/gen/delivery"
+	productpb "api-gateway/gen/product"
 )
 
 func main() {

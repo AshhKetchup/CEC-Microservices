@@ -1,3 +1,4 @@
+# databases/mysql-deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -17,7 +18,10 @@ spec:
         image: mysql:8.0
         env:
         - name: MYSQL_ROOT_PASSWORD
-          value: "rootpassword"
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret
+              key: root-password
         ports:
         - containerPort: 3306
         volumeMounts:
@@ -27,9 +31,7 @@ spec:
       - name: mysql-storage
         persistentVolumeClaim:
           claimName: mysql-pvc
-
 ---
-# Service
 apiVersion: v1
 kind: Service
 metadata:

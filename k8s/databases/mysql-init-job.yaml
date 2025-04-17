@@ -1,0 +1,32 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: mysql-init-job
+  namespace: microservices
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+      - name: mysql-init
+        image: mysql:8.0
+        command: ["sh", "-c"]
+        args:
+          - |
+            echo "Waiting for MySQL to be ready...";
+            until mysqladmin ping -hmysql -uroot -p$MYSQL_ROOT_PASSWORD --silent; do sleep 2; done;
+            echo "Running init.sql...";
+            mysql -hmysql -uroot -p$MYSQL_ROOT_PASSWORD < /docker-entrypoint-initdb.d/init.sql
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret
+              key: root-password
+        volumeMounts:
+        - name: mysql-init
+          mountPath: /docker-entrypoint-initdb.d
+      volumes:
+      - name: mysql-init
+        configMap:
+          name: mysql-init-sql

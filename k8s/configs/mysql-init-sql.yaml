@@ -1,0 +1,24 @@
+# configs/mysql-init-sql.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysql-init-sql
+  namespace: microservices
+data:
+  init.sql: |
+    CREATE DATABASE IF NOT EXISTS auth_db;
+    CREATE DATABASE IF NOT EXISTS product_db;
+    CREATE DATABASE IF NOT EXISTS cart_db;
+    CREATE DATABASE IF NOT EXISTS delivery_db;
+
+    CREATE USER IF NOT EXISTS 'auth_user'@'%' IDENTIFIED WITH mysql_native_password BY 'authpass';
+    CREATE USER IF NOT EXISTS 'product_user'@'%' IDENTIFIED WITH mysql_native_password BY 'productpass';
+    CREATE USER IF NOT EXISTS 'cart_user'@'%' IDENTIFIED WITH mysql_native_password BY 'cartpass';
+    CREATE USER IF NOT EXISTS 'delivery_user'@'%' IDENTIFIED WITH mysql_native_password BY 'deliverypass';
+
+    GRANT ALL PRIVILEGES ON auth_db.* TO 'auth_user'@'%';
+    GRANT ALL PRIVILEGES ON product_db.* TO 'product_user'@'%';
+    GRANT ALL PRIVILEGES ON cart_db.* TO 'cart_user'@'%';
+    GRANT ALL PRIVILEGES ON delivery_db.* TO 'delivery_user'@'%';
+
+    FLUSH PRIVILEGES;
