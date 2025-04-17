@@ -21,11 +21,6 @@ spec:
         envFrom:
         - configMapRef:
             name: delivery-config
-        readinessProbe:
-          exec:
-            command: ["grpc_health_probe", "-addr=:50054"]
-          initialDelaySeconds: 5
-          periodSeconds: 10
 ---
 apiVersion: v1
 kind: Service
