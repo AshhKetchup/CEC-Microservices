@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.version: 1.28.0 (c4137012e)
+  creationTimestamp: null
+  labels:
+    io.kompose.network/cec-microservices-microservices-network: "true"
+    io.kompose.service: cart-service
+  name: cart-service
+spec:
+  containers:
+    - env:
+        - name: AUTH_SERVICE_ADDR
+          value: auth-service:50051
+        - name: DB_HOST
+          value: mysql
+        - name: DB_NAME
+          value: cart_db
+        - name: DB_PASSWORD
+          value: cartpass
+        - name: DB_PORT
+          value: "3306"
+        - name: DB_USER
+          value: cart_user
+      image: ash784/cec-microservices:cec-microservices-cart-service-v1.0
+      name: cart-service
+      ports:
+        - containerPort: 50053
+      resources: {}
+  restartPolicy: OnFailure
+status: {}

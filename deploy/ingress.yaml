@@ -1,0 +1,16 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: api-gateway-ingress
+spec:
+  rules:
+  - host: cec.microservices.com  # Replace or omit for IP access
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: 10.100.18.64
+            port:
+              number: 8080

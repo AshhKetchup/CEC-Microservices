@@ -1,0 +1,14 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  creationTimestamp: null
+  name: cec-microservices-microservices-network
+spec:
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              io.kompose.network/cec-microservices-microservices-network: "true"
+  podSelector:
+    matchLabels:
+      io.kompose.network/cec-microservices-microservices-network: "true"

@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.version: 1.28.0 (c4137012e)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: api-gateway
+  name: api-gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: api-gateway
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert
+        kompose.version: 1.28.0 (c4137012e)
+      creationTimestamp: null
+      labels:
+        io.kompose.network/cec-microservices-microservices-network: "true"
+        io.kompose.service: api-gateway
+    spec:
+      containers:
+        - env:
+            - name: AUTH_SERVICE_ADDR
+              value: auth-service:50051
+            - name: CART_SERVICE_ADDR
+              value: cart-service:50053
+            - name: DELIVERY_SERVICE_ADDR
+              value: delivery-service:50054
+            - name: PRODUCT_SERVICE_ADDR
+              value: product-service:50052
+          image: ash784/cec-microservices:cec-microservices-api-gateway-v1.0
+          name: api-gateway
+          ports:
+            - containerPort: 8080
+          resources: {}
+      restartPolicy: Always
+status: {}

@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.version: 1.28.0 (c4137012e)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: delivery-service
+  name: delivery-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: delivery-service
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert
+        kompose.version: 1.28.0 (c4137012e)
+      creationTimestamp: null
+      labels:
+        io.kompose.network/cec-microservices-microservices-network: "true"
+        io.kompose.service: delivery-service
+    spec:
+      containers:
+        - env:
+            - name: CART_SERVICE_ADDR
+              value: cart-service:50053
+            - name: DB_HOST
+              value: mysql
+            - name: DB_NAME
+              value: delivery_db
+            - name: DB_PASSWORD
+              value: deliverypass
+            - name: DB_PORT
+              value: "3306"
+            - name: DB_USER
+              value: delivery_user
+          image: ash784/cec-microservices:cec-microservices-delivery-service-v1.0
+          name: delivery-service
+          ports:
+            - containerPort: 50054
+          resources: {}
+      restartPolicy: Always
+status: {}
