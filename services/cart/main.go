@@ -1,17 +1,25 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
+
+	"google.golang.org/grpc/credentials/insecure"
 
 	"cart/internal/db"
 	"cart/internal/handler"
-	pb "cart/proto/gen"
+	pb "cart/proto/gen/cart"
 
+	productpb "cart/proto/gen/product"
+
+	_ "github.com/go-sql-driver/mysql"
 	"google.golang.org/grpc"
+
 	"google.golang.org/grpc/health"
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 )
@@ -30,7 +38,29 @@ func main() {
 	healthServer := health.NewServer()
 
 	// Register services
-	cartHandler := handler.NewCartHandler(dbInstance)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	productServiceAddr := os.Getenv("PRODUCT_SERVICE_ADDR")
+	if productServiceAddr == "" {
+		productServiceAddr = "product-service:50052" // Default if not set
+	}
+
+	productConn, err := grpc.DialContext(ctx,
+		productServiceAddr,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithBlock(),
+	)
+	if err != nil {
+		log.Fatalf("Failed to connect to product service: %v", err)
+	}
+	defer productConn.Close()
+
+	// Create cart handler with dependencies
+	cartHandler := handler.NewCartHandler(
+		dbInstance,
+		productpb.NewProductServiceClient(productConn),
+	)
 	pb.RegisterCartServiceServer(grpcServer, cartHandler)
 	healthpb.RegisterHealthServer(grpcServer, healthServer)
 

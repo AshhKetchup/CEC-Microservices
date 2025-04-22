@@ -6,38 +6,48 @@ import (
 	"database/sql"
 	"time"
 
-	pb "cart/proto/gen"
+	pb "cart/proto/gen/cart"
+	productpb "cart/proto/gen/product"
+
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
 type CartHandler struct {
-	db *sql.DB
+	db            *sql.DB
+	productClient productpb.ProductServiceClient // Add product client
 	pb.UnimplementedCartServiceServer
 }
 
-func NewCartHandler(db *sql.DB) *CartHandler {
-	return &CartHandler{db: db}
+func NewCartHandler(db *sql.DB, productClient productpb.ProductServiceClient) *CartHandler {
+	return &CartHandler{
+		db:            db,
+		productClient: productClient, // Initialize product client
+	}
 }
 
 func (h *CartHandler) AddToCart(ctx context.Context, req *pb.AddToCartRequest) (*pb.BaseResponse, error) {
 	// Check if product exists
-	var productId string
-	err := h.db.QueryRowContext(ctx,
-		"SELECT id FROM products WHERE id = ?",
-		req.ProductId,
-	).Scan(&productId)
+	//productServiceAddr := os.Getenv("PRODUCT_SERVICE_ADDR")
+
+	_, err := h.productClient.GetProduct(ctx, &productpb.ProductID{
+		Id: req.ProductId,
+	})
 
 	if err != nil {
-		return nil, status.Errorf(codes.NotFound, "product not found: %v", err)
+		if status.Code(err) == codes.NotFound {
+			return nil, status.Errorf(codes.NotFound, "product not found")
+		}
+		return nil, status.Errorf(codes.Internal, "product service error: %v", err)
 	}
 
-	// Upsert cart item
+	// Product exists, proceed with adding to cart
 	_, err = h.db.ExecContext(ctx,
 		`INSERT INTO cart_items (user_id, product_id, quantity) 
-		VALUES (?, ?, ?)
-		ON DUPLICATE KEY UPDATE quantity = quantity + ?`,
+        VALUES (?, ?, ?)
+        ON DUPLICATE KEY UPDATE quantity = quantity + ?`,
 		req.UserId, req.ProductId, req.Quantity, req.Quantity,
 	)
 
@@ -48,27 +58,6 @@ func (h *CartHandler) AddToCart(ctx context.Context, req *pb.AddToCartRequest) (
 	return &pb.BaseResponse{
 		Code:    int32(codes.OK),
 		Message: "Item added to cart successfully",
-	}, nil
-}
-
-func (h *CartHandler) RemoveFromCart(ctx context.Context, req *pb.RemoveFromCartRequest) (*pb.BaseResponse, error) {
-	result, err := h.db.ExecContext(ctx,
-		"DELETE FROM cart_items WHERE user_id = ? AND product_id = ?",
-		req.UserId, req.ProductId,
-	)
-
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to remove from cart: %v", err)
-	}
-
-	rowsAffected, _ := result.RowsAffected()
-	if rowsAffected == 0 {
-		return nil, status.Error(codes.NotFound, "cart item not found")
-	}
-
-	return &pb.BaseResponse{
-		Code:    int32(codes.OK),
-		Message: "Item removed from cart successfully",
 	}, nil
 }
 
@@ -89,9 +78,7 @@ func (h *CartHandler) ProcessPayment(ctx context.Context, req *pb.PaymentRequest
 		req.UserId,
 	).Scan(&total)
 
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to calculate total: %v", err)
-	}
+	// Removed redundant error check
 
 	// Validate cart not empty
 	if total <= 0 {
